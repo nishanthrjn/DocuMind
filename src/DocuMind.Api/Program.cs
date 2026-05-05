@@ -1,41 +1,144 @@
+using DocuMind.Core.Parsers;
+using DocuMind.Core.Services;
+using DocuMind.Domain.Interfaces;
+using DocuMind.Infrastructure.Persistence;
+using DocuMind.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.SemanticKernel;
+using Pgvector.EntityFrameworkCore;
+using Scalar.AspNetCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+var connectionString  = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? "Host=localhost;Port=5432;Database=documind;Username=documind;Password=documind_dev";
+var ollamaEndpoint    = builder.Configuration["Ollama:Endpoint"]        ?? "http://localhost:11434";
+var ollamaEmbedModel  = builder.Configuration["Ollama:EmbeddingModel"]  ?? "nomic-embed-text";
+var ollamaChatModel   = builder.Configuration["Ollama:ChatModel"]       ?? "llama3.2";
+
+// ── Database ──────────────────────────────────────────────────────────────────
+builder.Services.AddDbContextFactory<DocuMindDbContext>(options =>
+    options.UseNpgsql(connectionString, o => o.UseVector()));
+
+// ── Semantic Kernel ───────────────────────────────────────────────────────────
+#pragma warning disable SKEXP0070
+var kernel = Kernel.CreateBuilder()
+    .AddOllamaTextEmbeddingGeneration(ollamaEmbedModel, new Uri(ollamaEndpoint))
+    .AddOllamaChatCompletion(ollamaChatModel, new Uri(ollamaEndpoint))
+    .Build();
+#pragma warning restore SKEXP0070
+
+builder.Services.AddSingleton(kernel);
+#pragma warning disable SKEXP0001
+builder.Services.AddSingleton(
+    kernel.GetRequiredService<Microsoft.SemanticKernel.Embeddings.ITextEmbeddingGenerationService>());
+#pragma warning restore SKEXP0001
+
+// ── Repositories ──────────────────────────────────────────────────────────────
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IChunkRepository,    ChunkRepository>();
+
+// ── Core services ─────────────────────────────────────────────────────────────
+builder.Services.AddScoped<IChunkingService,  ChunkingService>();
+builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
+builder.Services.AddScoped<IQueryService,     QueryService>();
+builder.Services.AddScoped<IngestionService>();
+builder.Services.AddSingleton<IDocumentParser, DocuMind.Core.Parsers.PdfDocumentParser>();
+builder.Services.AddSingleton<IDocumentParser, DocuMind.Core.Parsers.PlainTextParser>();
+builder.Services.AddSingleton<DocumentParserDispatcher>();
+
+// ── API ───────────────────────────────────────────────────────────────────────
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    app.MapOpenApi();
+    var factory = scope.ServiceProvider
+        .GetRequiredService<IDbContextFactory<DocuMindDbContext>>();
+    await using var db = factory.CreateDbContext();
+    await db.Database.MigrateAsync();
 }
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
+app.MapOpenApi();
+app.MapScalarApiReference(options =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    options.Title = "DocuMind API";
+    options.Theme = ScalarTheme.DeepSpace;
+});
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/health", () => new
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    Status  = "DocuMind Online",
+    Time    = DateTime.UtcNow,
+    Version = "1.0.0"
+}).WithName("GetHealth").WithTags("System");
+
+app.MapGet("/api/documents", async (
+    IDocumentRepository repo, CancellationToken ct) =>
+{
+    var docs = await repo.GetAllAsync(ct);
+    return Results.Ok(docs.Select(d => new
+    {
+        d.Id, d.FileName, d.ContentType,
+        d.Status, d.ChunkCount,
+        d.UploadedAt, d.ProcessedAt
+    }));
+}).WithName("GetDocuments").WithTags("Documents");
+
+app.MapGet("/api/documents/{id:guid}", async (
+    Guid id, IDocumentRepository repo, CancellationToken ct) =>
+{
+    var doc = await repo.GetByIdAsync(id, ct);
+    return doc is null
+        ? Results.NotFound(new { Error = $"Document {id} not found" })
+        : Results.Ok(doc);
+}).WithName("GetDocument").WithTags("Documents");
+
+app.MapPost("/api/documents/ingest", async (
+    HttpRequest request, IngestionService ingestion, CancellationToken ct) =>
+{
+    if (!request.HasFormContentType)
+        return Results.BadRequest(new { Error = "Request must be multipart/form-data" });
+
+    var form = await request.ReadFormAsync(ct);
+    var file = form.Files.GetFile("file");
+
+    if (file is null)
+        return Results.BadRequest(new { Error = "No file uploaded. Use field name 'file'" });
+
+    await using var stream = file.OpenReadStream();
+    var document = await ingestion.IngestAsync(
+        stream, file.FileName, file.ContentType ?? "application/octet-stream", ct);
+
+    return Results.Accepted($"/api/documents/{document.Id}", new
+    {
+        document.Id,
+        document.FileName,
+        document.Status,
+        document.ChunkCount,
+        Message = "Document ingested successfully"
+    });
+}).WithName("IngestDocument").WithTags("Documents")
+  .DisableAntiforgery();
+
+app.MapPost("/api/query", async (
+    QueryRequest request, IQueryService queryService, CancellationToken ct) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Question))
+        return Results.BadRequest(new { Error = "Question cannot be empty" });
+
+    var result = await queryService.QueryAsync(request.Question, request.TopK, ct);
+    return Results.Ok(new
+    {
+        result.Answer,
+        result.Citations,
+        result.LatencyMs,
+        request.Question
+    });
+}).WithName("Query").WithTags("Query");
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+public record QueryRequest(string Question, int TopK = 5);
