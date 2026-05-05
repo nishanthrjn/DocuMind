@@ -1,0 +1,15 @@
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\bin\Debug\net10.0\DocuMind.Core.deps.json
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\bin\Debug\net10.0\DocuMind.Core.dll
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\bin\Debug\net10.0\DocuMind.Core.pdb
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\bin\Debug\net10.0\DocuMind.Domain.dll
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\bin\Debug\net10.0\DocuMind.Domain.pdb
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\obj\Debug\net10.0\DocuMind.Core.csproj.AssemblyReference.cache
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\obj\Debug\net10.0\DocuMind.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\obj\Debug\net10.0\DocuMind.Core.AssemblyInfoInputs.cache
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\obj\Debug\net10.0\DocuMind.Core.AssemblyInfo.cs
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\obj\Debug\net10.0\DocuMind.Core.csproj.CoreCompileInputs.cache
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\obj\Debug\net10.0\DocuMind.2D8190A8.Up2Date
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\obj\Debug\net10.0\DocuMind.Core.dll
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\obj\Debug\net10.0\refint\DocuMind.Core.dll
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\obj\Debug\net10.0\DocuMind.Core.pdb
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Core\obj\Debug\net10.0\ref\DocuMind.Core.dll

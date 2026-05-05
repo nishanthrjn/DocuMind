@@ -1,0 +1,611 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "DocuMind.Api/1.0.0": {
+        "dependencies": {
+          "DocuMind.Core": "1.0.0",
+          "DocuMind.Infrastructure": "1.0.0",
+          "Microsoft.AspNetCore.OpenApi": "10.0.3",
+          "Scalar.AspNetCore": "2.4.1"
+        },
+        "runtime": {
+          "DocuMind.Api.dll": {}
+        }
+      },
+      "Azure.AI.OpenAI/2.1.0-beta.2": {
+        "dependencies": {
+          "Azure.Core": "1.44.1",
+          "OpenAI": "2.1.0-beta.2"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Azure.AI.OpenAI.dll": {
+            "assemblyVersion": "2.1.0.0",
+            "fileVersion": "2.100.24.55401"
+          }
+        }
+      },
+      "Azure.Core/1.44.1": {
+        "dependencies": {
+          "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
+          "System.ClientModel": "1.2.1",
+          "System.Memory.Data": "6.0.0"
+        },
+        "runtime": {
+          "lib/net6.0/Azure.Core.dll": {
+            "assemblyVersion": "1.44.1.0",
+            "fileVersion": "1.4400.124.50905"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.OpenApi/10.0.3": {
+        "dependencies": {
+          "Microsoft.OpenApi": "2.0.0"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.AspNetCore.OpenApi.dll": {
+            "assemblyVersion": "10.0.3.0",
+            "fileVersion": "10.0.326.7603"
+          }
+        }
+      },
+      "Microsoft.Bcl.AsyncInterfaces/8.0.0": {
+        "runtime": {
+          "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
+      "Microsoft.Bcl.HashCode/1.1.1": {
+        "runtime": {
+          "lib/netcoreapp2.1/Microsoft.Bcl.HashCode.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "4.700.20.56604"
+          }
+        }
+      },
+      "Microsoft.EntityFrameworkCore/9.0.0": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Abstractions": "9.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.EntityFrameworkCore.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.24.52902"
+          }
+        }
+      },
+      "Microsoft.EntityFrameworkCore.Abstractions/9.0.0": {
+        "runtime": {
+          "lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.24.52902"
+          }
+        }
+      },
+      "Microsoft.EntityFrameworkCore.Relational/9.0.0": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "9.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.EntityFrameworkCore.Relational.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.24.52902"
+          }
+        }
+      },
+      "Microsoft.Extensions.AI/9.0.1-preview.1.24570.5": {
+        "dependencies": {
+          "Microsoft.Extensions.AI.Abstractions": "9.0.1-preview.1.24570.5"
+        },
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.AI.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.124.57005"
+          }
+        }
+      },
+      "Microsoft.Extensions.AI.Abstractions/9.0.1-preview.1.24570.5": {
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.AI.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.124.57005"
+          }
+        }
+      },
+      "Microsoft.Extensions.VectorData.Abstractions/9.0.0-preview.1.24523.1": {
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.VectorData.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.0.0"
+          }
+        }
+      },
+      "Microsoft.OpenApi/2.0.0": {
+        "runtime": {
+          "lib/net8.0/Microsoft.OpenApi.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.0.0"
+          }
+        }
+      },
+      "Microsoft.SemanticKernel/1.32.0": {
+        "dependencies": {
+          "Microsoft.SemanticKernel.Connectors.AzureOpenAI": "1.32.0",
+          "Microsoft.SemanticKernel.Core": "1.32.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.SemanticKernel.dll": {
+            "assemblyVersion": "1.32.0.0",
+            "fileVersion": "1.32.0.0"
+          }
+        }
+      },
+      "Microsoft.SemanticKernel.Abstractions/1.32.0": {
+        "dependencies": {
+          "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
+          "Microsoft.Bcl.HashCode": "1.1.1",
+          "Microsoft.Extensions.AI.Abstractions": "9.0.1-preview.1.24570.5",
+          "Microsoft.Extensions.VectorData.Abstractions": "9.0.0-preview.1.24523.1"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.SemanticKernel.Abstractions.dll": {
+            "assemblyVersion": "1.32.0.0",
+            "fileVersion": "1.32.0.0"
+          }
+        }
+      },
+      "Microsoft.SemanticKernel.Connectors.AzureOpenAI/1.32.0": {
+        "dependencies": {
+          "Azure.AI.OpenAI": "2.1.0-beta.2",
+          "Microsoft.SemanticKernel.Connectors.OpenAI": "1.32.0",
+          "Microsoft.SemanticKernel.Core": "1.32.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.SemanticKernel.Connectors.AzureOpenAI.dll": {
+            "assemblyVersion": "1.32.0.0",
+            "fileVersion": "1.32.0.0"
+          }
+        }
+      },
+      "Microsoft.SemanticKernel.Connectors.Ollama/1.32.0-alpha": {
+        "dependencies": {
+          "Microsoft.Extensions.AI": "9.0.1-preview.1.24570.5",
+          "Microsoft.SemanticKernel.Abstractions": "1.32.0",
+          "Microsoft.SemanticKernel.Core": "1.32.0",
+          "OllamaSharp": "4.0.8"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.SemanticKernel.Connectors.Ollama.dll": {
+            "assemblyVersion": "1.32.0.0",
+            "fileVersion": "1.32.0.0"
+          }
+        }
+      },
+      "Microsoft.SemanticKernel.Connectors.OpenAI/1.32.0": {
+        "dependencies": {
+          "Microsoft.SemanticKernel.Core": "1.32.0",
+          "OpenAI": "2.1.0-beta.2"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.SemanticKernel.Connectors.OpenAI.dll": {
+            "assemblyVersion": "1.32.0.0",
+            "fileVersion": "1.32.0.0"
+          }
+        }
+      },
+      "Microsoft.SemanticKernel.Core/1.32.0": {
+        "dependencies": {
+          "Microsoft.SemanticKernel.Abstractions": "1.32.0",
+          "System.Numerics.Tensors": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.SemanticKernel.Core.dll": {
+            "assemblyVersion": "1.32.0.0",
+            "fileVersion": "1.32.0.0"
+          }
+        }
+      },
+      "Npgsql/9.0.0": {
+        "runtime": {
+          "lib/net8.0/Npgsql.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.0.0"
+          }
+        }
+      },
+      "Npgsql.EntityFrameworkCore.PostgreSQL/9.0.0": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "9.0.0",
+          "Microsoft.EntityFrameworkCore.Relational": "9.0.0",
+          "Npgsql": "9.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/Npgsql.EntityFrameworkCore.PostgreSQL.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.0.0"
+          }
+        }
+      },
+      "OllamaSharp/4.0.8": {
+        "dependencies": {
+          "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
+          "Microsoft.Extensions.AI.Abstractions": "9.0.1-preview.1.24570.5"
+        },
+        "runtime": {
+          "lib/netstandard2.0/OllamaSharp.dll": {
+            "assemblyVersion": "4.0.8.0",
+            "fileVersion": "4.0.8.0"
+          }
+        }
+      },
+      "OpenAI/2.1.0-beta.2": {
+        "dependencies": {
+          "System.ClientModel": "1.2.1"
+        },
+        "runtime": {
+          "lib/net6.0/OpenAI.dll": {
+            "assemblyVersion": "2.1.0.0",
+            "fileVersion": "2.1.0.0"
+          }
+        }
+      },
+      "PdfPig/0.1.9": {
+        "runtime": {
+          "lib/net8.0/UglyToad.PdfPig.Core.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          },
+          "lib/net8.0/UglyToad.PdfPig.DocumentLayoutAnalysis.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          },
+          "lib/net8.0/UglyToad.PdfPig.Fonts.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          },
+          "lib/net8.0/UglyToad.PdfPig.Package.dll": {
+            "assemblyVersion": "0.1.8.0",
+            "fileVersion": "0.1.8.0"
+          },
+          "lib/net8.0/UglyToad.PdfPig.Tokenization.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          },
+          "lib/net8.0/UglyToad.PdfPig.Tokens.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          },
+          "lib/net8.0/UglyToad.PdfPig.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          }
+        }
+      },
+      "Pgvector/0.2.0": {
+        "dependencies": {
+          "Npgsql": "9.0.0"
+        },
+        "runtime": {
+          "lib/net6.0/Pgvector.dll": {
+            "assemblyVersion": "0.2.0.0",
+            "fileVersion": "0.2.0.0"
+          }
+        }
+      },
+      "Pgvector.EntityFrameworkCore/0.2.0": {
+        "dependencies": {
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.0",
+          "Pgvector": "0.2.0"
+        },
+        "runtime": {
+          "lib/net8.0/Pgvector.EntityFrameworkCore.dll": {
+            "assemblyVersion": "0.2.0.0",
+            "fileVersion": "0.2.0.0"
+          }
+        }
+      },
+      "Scalar.AspNetCore/2.4.1": {
+        "runtime": {
+          "lib/net9.0/Scalar.AspNetCore.dll": {
+            "assemblyVersion": "2.4.1.0",
+            "fileVersion": "2.4.1.0"
+          }
+        }
+      },
+      "System.ClientModel/1.2.1": {
+        "dependencies": {
+          "System.Memory.Data": "6.0.0"
+        },
+        "runtime": {
+          "lib/net6.0/System.ClientModel.dll": {
+            "assemblyVersion": "1.2.1.0",
+            "fileVersion": "1.200.124.50905"
+          }
+        }
+      },
+      "System.Memory.Data/6.0.0": {
+        "runtime": {
+          "lib/net6.0/System.Memory.Data.dll": {
+            "assemblyVersion": "6.0.0.0",
+            "fileVersion": "6.0.21.52210"
+          }
+        }
+      },
+      "System.Numerics.Tensors/8.0.0": {
+        "runtime": {
+          "lib/net8.0/System.Numerics.Tensors.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.23.53103"
+          }
+        }
+      },
+      "DocuMind.Core/1.0.0": {
+        "dependencies": {
+          "DocuMind.Domain": "1.0.0",
+          "Microsoft.SemanticKernel": "1.32.0",
+          "Microsoft.SemanticKernel.Connectors.Ollama": "1.32.0-alpha",
+          "PdfPig": "0.1.9"
+        },
+        "runtime": {
+          "DocuMind.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "DocuMind.Domain/1.0.0": {
+        "runtime": {
+          "DocuMind.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "DocuMind.Infrastructure/1.0.0": {
+        "dependencies": {
+          "DocuMind.Core": "1.0.0",
+          "DocuMind.Domain": "1.0.0",
+          "Npgsql.EntityFrameworkCore.PostgreSQL": "9.0.0",
+          "Pgvector.EntityFrameworkCore": "0.2.0"
+        },
+        "runtime": {
+          "DocuMind.Infrastructure.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "DocuMind.Api/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Azure.AI.OpenAI/2.1.0-beta.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-9dm9MgejTpvWZHkLC9rBP01SII2bRLR55CwkKHS55Hai1pKxST7QvZ46MjIcTcmApfaV6XbHuF8mxSorqUU05w==",
+      "path": "azure.ai.openai/2.1.0-beta.2",
+      "hashPath": "azure.ai.openai.2.1.0-beta.2.nupkg.sha512"
+    },
+    "Azure.Core/1.44.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-YyznXLQZCregzHvioip07/BkzjuWNXogJEVz9T5W6TwjNr17ax41YGzYMptlo2G10oLCuVPoyva62y0SIRDixg==",
+      "path": "azure.core/1.44.1",
+      "hashPath": "azure.core.1.44.1.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.OpenApi/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-SAvSrKDgnY5GDjDAngOXxPhUvEKlTU/0zIq8zidqHvh/xnZBPs0Vc4LqwyvnmnafNnyUaivtRABz4K4wodXfSg==",
+      "path": "microsoft.aspnetcore.openapi/10.0.3",
+      "hashPath": "microsoft.aspnetcore.openapi.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Bcl.AsyncInterfaces/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3WA9q9yVqJp222P3x1wYIGDAkpjAku0TMUaaQV22g6L67AI0LdOIrVS7Ht2vJfLHGSPVuqN94vIr15qn+HEkHw==",
+      "path": "microsoft.bcl.asyncinterfaces/8.0.0",
+      "hashPath": "microsoft.bcl.asyncinterfaces.8.0.0.nupkg.sha512"
+    },
+    "Microsoft.Bcl.HashCode/1.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-MalY0Y/uM/LjXtHfX/26l2VtN4LDNZ2OE3aumNOHDLsT4fNYy2hiHXI4CXCqKpNUNm7iJ2brrc4J89UdaL56FA==",
+      "path": "microsoft.bcl.hashcode/1.1.1",
+      "hashPath": "microsoft.bcl.hashcode.1.1.1.nupkg.sha512"
+    },
+    "Microsoft.EntityFrameworkCore/9.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-wpG+nfnfDAw87R3ovAsUmjr3MZ4tYXf6bFqEPVAIKE6IfPml3DS//iX0DBnf8kWn5ZHSO5oi1m4d/Jf+1LifJQ==",
+      "path": "microsoft.entityframeworkcore/9.0.0",
+      "hashPath": "microsoft.entityframeworkcore.9.0.0.nupkg.sha512"
+    },
+    "Microsoft.EntityFrameworkCore.Abstractions/9.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-fnmifFL8KaA4ZNLCVgfjCWhZUFxkrDInx5hR4qG7Q8IEaSiy/6VOSRFyx55oH7MV4y7wM3J3EE90nSpcVBI44Q==",
+      "path": "microsoft.entityframeworkcore.abstractions/9.0.0",
+      "hashPath": "microsoft.entityframeworkcore.abstractions.9.0.0.nupkg.sha512"
+    },
+    "Microsoft.EntityFrameworkCore.Relational/9.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-j+msw6fWgAE9M3Q/5B9Uhv7pdAdAQUvFPJAiBJmoy+OXvehVbfbCE8ftMAa51Uo2ZeiqVnHShhnv4Y4UJJmUzA==",
+      "path": "microsoft.entityframeworkcore.relational/9.0.0",
+      "hashPath": "microsoft.entityframeworkcore.relational.9.0.0.nupkg.sha512"
+    },
+    "Microsoft.Extensions.AI/9.0.1-preview.1.24570.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-J38WKNCFGAFhFrUPSHfgaRl593/guj9jAIvD7LS9VUdP3kh15kTSA2tJgQFubWpItPnmESDLtkggOEFu6AKEYw==",
+      "path": "microsoft.extensions.ai/9.0.1-preview.1.24570.5",
+      "hashPath": "microsoft.extensions.ai.9.0.1-preview.1.24570.5.nupkg.sha512"
+    },
+    "Microsoft.Extensions.AI.Abstractions/9.0.1-preview.1.24570.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zqUK1epXT+mxmJW7bonO2gRuYEhysLGIGCbPVXW5qmgYA+8PgFle9IPeKpb9RevwxnEedXdHm+nQyQiOnZIHWg==",
+      "path": "microsoft.extensions.ai.abstractions/9.0.1-preview.1.24570.5",
+      "hashPath": "microsoft.extensions.ai.abstractions.9.0.1-preview.1.24570.5.nupkg.sha512"
+    },
+    "Microsoft.Extensions.VectorData.Abstractions/9.0.0-preview.1.24523.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-5TUbyFZN8v2eWQXwF7WyAAHCW+OMdsmEVEWw1N1J7L5xA25UD0BtUXxO1kc8Nzkc6c1YGN/NwarySgiY84ALlg==",
+      "path": "microsoft.extensions.vectordata.abstractions/9.0.0-preview.1.24523.1",
+      "hashPath": "microsoft.extensions.vectordata.abstractions.9.0.0-preview.1.24523.1.nupkg.sha512"
+    },
+    "Microsoft.OpenApi/2.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-GGYLfzV/G/ct80OZ45JxnWP7NvMX1BCugn/lX7TH5o0lcVaviavsLMTxmFV2AybXWjbi3h6FF1vgZiTK6PXndw==",
+      "path": "microsoft.openapi/2.0.0",
+      "hashPath": "microsoft.openapi.2.0.0.nupkg.sha512"
+    },
+    "Microsoft.SemanticKernel/1.32.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3K6FGWycODqKVPfG4H/SMWE8nEcl3X30W8Sc46APYd/iwULJNgNtDyXaWJELuoLC1V4BRmdydvLPrhm50U/rfQ==",
+      "path": "microsoft.semantickernel/1.32.0",
+      "hashPath": "microsoft.semantickernel.1.32.0.nupkg.sha512"
+    },
+    "Microsoft.SemanticKernel.Abstractions/1.32.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-RkowDH+bZhahO+1pcSoqyYpZD0cS22uqIPoWA1NRVxcJlY1qrg+gU+yx0ysAgX6doCQ1sXpPfRn9e3Yxgtqtsw==",
+      "path": "microsoft.semantickernel.abstractions/1.32.0",
+      "hashPath": "microsoft.semantickernel.abstractions.1.32.0.nupkg.sha512"
+    },
+    "Microsoft.SemanticKernel.Connectors.AzureOpenAI/1.32.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-yuT+vmwG4W1T8XQN1y76RwYUkgrh5Pz8Ot59N01Fo5oA2t9AL+P7uh6cECg45+7tld6LSPVEXN/fbXvYw6JjgQ==",
+      "path": "microsoft.semantickernel.connectors.azureopenai/1.32.0",
+      "hashPath": "microsoft.semantickernel.connectors.azureopenai.1.32.0.nupkg.sha512"
+    },
+    "Microsoft.SemanticKernel.Connectors.Ollama/1.32.0-alpha": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-IS1CFSB0J5U63wbtVZgXtCuxnKQziDsaSBymN2U2ihJN5d4lz+sOF5mjgbQ3aTAh9kbhRtS85HpHqfz99g7qWQ==",
+      "path": "microsoft.semantickernel.connectors.ollama/1.32.0-alpha",
+      "hashPath": "microsoft.semantickernel.connectors.ollama.1.32.0-alpha.nupkg.sha512"
+    },
+    "Microsoft.SemanticKernel.Connectors.OpenAI/1.32.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-uA/XXu8Abz7AmjQP7GgSyNeC31JWKY+D1iWjpokR+8tZ8+tFXVCmk9ci8t3buDx/wyF6loHH8UbAfbRC89E0zg==",
+      "path": "microsoft.semantickernel.connectors.openai/1.32.0",
+      "hashPath": "microsoft.semantickernel.connectors.openai.1.32.0.nupkg.sha512"
+    },
+    "Microsoft.SemanticKernel.Core/1.32.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-rwhDywnFTYoCVPvlAiOvFb8NQKrjBofbrNHqROsBNwIJicSwJz9k7Zc852O5MzQEGRvCzkJlA/oUEG+U++AT2Q==",
+      "path": "microsoft.semantickernel.core/1.32.0",
+      "hashPath": "microsoft.semantickernel.core.1.32.0.nupkg.sha512"
+    },
+    "Npgsql/9.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zu1nCRt0gWP/GR0reYgg0Bl5o8qyNV7mVAgzAbVLRiAd1CYXcf/9nrubPH0mt93u8iGTKmYqWaLVECEAcE6IfQ==",
+      "path": "npgsql/9.0.0",
+      "hashPath": "npgsql.9.0.0.nupkg.sha512"
+    },
+    "Npgsql.EntityFrameworkCore.PostgreSQL/9.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ObngKFRLMBAeMqQzK7SC0Q6WZtWw0imPmEkVPo12yLVF3fioz2TN+w0mhNMJ5cVd/sLB2u+jei0bmA9sDMtkMw==",
+      "path": "npgsql.entityframeworkcore.postgresql/9.0.0",
+      "hashPath": "npgsql.entityframeworkcore.postgresql.9.0.0.nupkg.sha512"
+    },
+    "OllamaSharp/4.0.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-4mZZQkVRxevJ/oDVO4Eg02H3tPO9Nxo7kmp9LIru2Po01oqMipLyBxsnueeXCMKC8LPVOaqEjbejwBMR0Stu3Q==",
+      "path": "ollamasharp/4.0.8",
+      "hashPath": "ollamasharp.4.0.8.nupkg.sha512"
+    },
+    "OpenAI/2.1.0-beta.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-l+fZAS9XnCxnxGodYFPziMNF9u0ZBfOGEyOuryXnjkcPe+Z4g/ErEvGYyq559V+Q9C8J87eQ0lfq5KtwSk6ppw==",
+      "path": "openai/2.1.0-beta.2",
+      "hashPath": "openai.2.1.0-beta.2.nupkg.sha512"
+    },
+    "PdfPig/0.1.9": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VU27oq5O0rpD+zWiD639xXkSHtsNXqbPpYV0pzYg9VPhDibH1cq1i67f9DuW2WnzDVEti0HipLcZxDhdayIzGg==",
+      "path": "pdfpig/0.1.9",
+      "hashPath": "pdfpig.0.1.9.nupkg.sha512"
+    },
+    "Pgvector/0.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-LDG8LAxOn6Ifgvg9S3gyQCFYGLVMQPYwnQiiHCDpCMfnVDm9b7J3DPsEDA2J3/qBwHUYKB6fWqNpqh91ztiILQ==",
+      "path": "pgvector/0.2.0",
+      "hashPath": "pgvector.0.2.0.nupkg.sha512"
+    },
+    "Pgvector.EntityFrameworkCore/0.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-0PrrlCvCJZA8hqJ7AUmcVnrbEv3ptP2Z1aIqRIouoeX+ki0YFk2rUsiDsBhVwMI4srds1vUjkKtIHXrLOeUArw==",
+      "path": "pgvector.entityframeworkcore/0.2.0",
+      "hashPath": "pgvector.entityframeworkcore.0.2.0.nupkg.sha512"
+    },
+    "Scalar.AspNetCore/2.4.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-l8AQst8bJ526JtsjM7E0dMEi4FnmMzzieaJM4OSxgEE8I8zqY0+xOHuqkUB5gl2I0tPIG761l/kJJ4jcQE0JEA==",
+      "path": "scalar.aspnetcore/2.4.1",
+      "hashPath": "scalar.aspnetcore.2.4.1.nupkg.sha512"
+    },
+    "System.ClientModel/1.2.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-s9+M5El+DXdCRRLzxak8uGBKWT8H/eIssGpFtpaMKdJULrQbBDPH/zFbVyHX+NDczhS5EvjHFbBH9/L+0UhmcA==",
+      "path": "system.clientmodel/1.2.1",
+      "hashPath": "system.clientmodel.1.2.1.nupkg.sha512"
+    },
+    "System.Memory.Data/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ntFHArH3I4Lpjf5m4DCXQHJuGwWPNVJPaAvM95Jy/u+2Yzt2ryiyIN04LAogkjP9DeRcEOiviAjQotfmPq/FrQ==",
+      "path": "system.memory.data/6.0.0",
+      "hashPath": "system.memory.data.6.0.0.nupkg.sha512"
+    },
+    "System.Numerics.Tensors/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-fhODzTe9ON9IzmRfyVeA6L8yXOciMtpq1YufkRVBliggcVKZE+XDxqIn46+yF4PWR6wNPuDpXtPpuY86VcKxUA==",
+      "path": "system.numerics.tensors/8.0.0",
+      "hashPath": "system.numerics.tensors.8.0.0.nupkg.sha512"
+    },
+    "DocuMind.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DocuMind.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DocuMind.Infrastructure/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

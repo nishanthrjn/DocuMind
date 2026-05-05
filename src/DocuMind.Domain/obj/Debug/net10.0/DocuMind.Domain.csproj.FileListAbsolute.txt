@@ -1,0 +1,11 @@
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\bin\Debug\net10.0\DocuMind.Domain.deps.json
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\bin\Debug\net10.0\DocuMind.Domain.dll
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\bin\Debug\net10.0\DocuMind.Domain.pdb
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\obj\Debug\net10.0\DocuMind.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\obj\Debug\net10.0\DocuMind.Domain.AssemblyInfoInputs.cache
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\obj\Debug\net10.0\DocuMind.Domain.AssemblyInfo.cs
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\obj\Debug\net10.0\DocuMind.Domain.csproj.CoreCompileInputs.cache
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\obj\Debug\net10.0\DocuMind.Domain.dll
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\obj\Debug\net10.0\refint\DocuMind.Domain.dll
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\obj\Debug\net10.0\DocuMind.Domain.pdb
+C:\Users\gayat\Myproject\DocuMind\src\DocuMind.Domain\obj\Debug\net10.0\ref\DocuMind.Domain.dll
