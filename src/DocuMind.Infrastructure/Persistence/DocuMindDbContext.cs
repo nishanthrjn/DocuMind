@@ -56,7 +56,7 @@ public class DocuMindDbContext : DbContext
             // pgvector column — stores float array as a vector type
             b.Property(x => x.Embedding)
              .HasColumnName("embedding")
-             .HasColumnType("vector(1536)")
+             .HasColumnType("vector(768)")
              .HasConversion(
                  v => v == null ? null : new Vector(v),
                  v => v == null ? null : v.ToArray());
