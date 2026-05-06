@@ -12,7 +12,7 @@
 ---
 
 ## Live Demo
-
+```text
 POST /api/documents/ingest  →  Upload Nishanth_CV.pdf
 ↓ PdfPig parses 4858 characters
 ↓ Sliding window chunking (512 words, 50 overlap)
@@ -23,7 +23,7 @@ POST /api/documents/ingest  →  Upload Nishanth_CV.pdf
 ↓ Top chunks injected into Semantic Kernel prompt
 ↓ llama3.2 generates answer with citations
 ↓ 200 OK — answer returned in ~37 seconds
-
+```
 ---
 
 ## Why This Is Hard
@@ -46,6 +46,7 @@ DocuMind solves the actual engineering problems:
 
 ## Architecture
 
+```text
 Documents (PDF, TXT, MD)
 |
 v
@@ -65,7 +66,7 @@ QueryService  (embed question -> search -> inject context -> LLM)
 |
 v
 ASP.NET Core Minimal API  +  Scalar UI
-
+```
 ---
 
 ## Tech Stack
@@ -137,7 +138,7 @@ curl -X POST http://localhost:5000/api/query \
 ---
 
 ## Project Structure
-
+```text
 DocuMind/
 ├── src/
 │   ├── DocuMind.Domain/          # Entities, interfaces, enums
@@ -152,7 +153,7 @@ DocuMind/
 │   └── DocuMind.Tests/           # xUnit — chunking, parser tests
 └── infra/
 └── docker-compose.yml        # PostgreSQL with pgvector
-
+```
 ---
 
 ## Key Engineering Decisions
@@ -199,6 +200,5 @@ dotnet test
 ## Author
 
 **Nishanth Rajan** — Software Engineer
-Hannover, Germany | EU Blue Card holder
 https://linkedin.com/in/nishanthrajan
 https://github.com/nishanthrjn/DocuMind
