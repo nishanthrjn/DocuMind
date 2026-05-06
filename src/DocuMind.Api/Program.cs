@@ -12,19 +12,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString  = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Host=localhost;Port=5432;Database=documind;Username=documind;Password=documind_dev";
-var ollamaEndpoint    = builder.Configuration["Ollama:Endpoint"]        ?? "http://localhost:11434";
-var ollamaEmbedModel  = builder.Configuration["Ollama:EmbeddingModel"]  ?? "nomic-embed-text";
-var ollamaChatModel   = builder.Configuration["Ollama:ChatModel"]       ?? "llama3.2";
+var ollamaEndpoint    = builder.Configuration["Ollama:Endpoint"]       ?? "http://localhost:11434";
+var ollamaEmbedModel  = builder.Configuration["Ollama:EmbeddingModel"] ?? "nomic-embed-text";
+var ollamaChatModel   = builder.Configuration["Ollama:ChatModel"]      ?? "llama3.2";
 
-// ── Database ──────────────────────────────────────────────────────────────────
 builder.Services.AddDbContextFactory<DocuMindDbContext>(options =>
     options.UseNpgsql(connectionString, o => o.UseVector()));
 
-// ── Semantic Kernel ───────────────────────────────────────────────────────────
+// Increase HttpClient timeout — llama3.2 on CPU can take 2-3 minutes
+var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+
 #pragma warning disable SKEXP0070
 var kernel = Kernel.CreateBuilder()
-    .AddOllamaTextEmbeddingGeneration(ollamaEmbedModel, new Uri(ollamaEndpoint))
-    .AddOllamaChatCompletion(ollamaChatModel, new Uri(ollamaEndpoint))
+    .AddOllamaTextEmbeddingGeneration(ollamaEmbedModel, new Uri(ollamaEndpoint), httpClient: httpClient)
+    .AddOllamaChatCompletion(ollamaChatModel, new Uri(ollamaEndpoint), httpClient: httpClient)
     .Build();
 #pragma warning restore SKEXP0070
 
@@ -34,20 +35,16 @@ builder.Services.AddSingleton(
     kernel.GetRequiredService<Microsoft.SemanticKernel.Embeddings.ITextEmbeddingGenerationService>());
 #pragma warning restore SKEXP0001
 
-// ── Repositories ──────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IChunkRepository,    ChunkRepository>();
-
-// ── Core services ─────────────────────────────────────────────────────────────
-builder.Services.AddScoped<IChunkingService,  ChunkingService>();
-builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
-builder.Services.AddScoped<IQueryService,     QueryService>();
+builder.Services.AddScoped<IChunkingService,    ChunkingService>();
+builder.Services.AddScoped<IEmbeddingService,   EmbeddingService>();
+builder.Services.AddScoped<IQueryService,       QueryService>();
 builder.Services.AddScoped<IngestionService>();
 builder.Services.AddSingleton<IDocumentParser, DocuMind.Core.Parsers.PdfDocumentParser>();
 builder.Services.AddSingleton<IDocumentParser, DocuMind.Core.Parsers.PlainTextParser>();
 builder.Services.AddSingleton<DocumentParserDispatcher>();
 
-// ── API ───────────────────────────────────────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
