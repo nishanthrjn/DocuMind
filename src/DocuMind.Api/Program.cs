@@ -19,14 +19,11 @@ var ollamaChatModel   = builder.Configuration["Ollama:ChatModel"]      ?? "llama
 builder.Services.AddDbContextFactory<DocuMindDbContext>(options =>
     options.UseNpgsql(connectionString, o => o.UseVector()));
 
-// Increase HttpClient timeout — llama3.2 on CPU can take 2-3 minutes
-var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
-
 #pragma warning disable SKEXP0070
-var kernel = Kernel.CreateBuilder()
-    .AddOllamaTextEmbeddingGeneration(ollamaEmbedModel, new Uri(ollamaEndpoint), httpClient: httpClient)
-    .AddOllamaChatCompletion(ollamaChatModel, new Uri(ollamaEndpoint), httpClient: httpClient)
-    .Build();
+var kernelBuilder = Kernel.CreateBuilder();
+kernelBuilder.AddOllamaTextEmbeddingGeneration(ollamaEmbedModel, new Uri(ollamaEndpoint));
+kernelBuilder.AddOllamaChatCompletion(ollamaChatModel, new Uri(ollamaEndpoint));
+var kernel = kernelBuilder.Build();
 #pragma warning restore SKEXP0070
 
 builder.Services.AddSingleton(kernel);
