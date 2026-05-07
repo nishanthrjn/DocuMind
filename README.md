@@ -12,7 +12,7 @@
 ---
 
 ## Live Demo
-
+```text
 POST /api/documents/ingest  →  Upload Nishanth_CV.pdf
 ↓ PdfPig parses 4858 characters
 ↓ Sliding window chunking (512 words, 50 overlap)
@@ -23,7 +23,7 @@ POST /api/documents/ingest  →  Upload Nishanth_CV.pdf
 ↓ Top chunks injected into Semantic Kernel prompt
 ↓ llama3.2 generates answer with citations
 ↓ 200 OK — answer returned in ~37 seconds
-
+```
 ---
 
 ## Why This Is Hard
@@ -46,6 +46,7 @@ DocuMind solves the actual engineering problems:
 
 ## Architecture
 
+```text
 Documents (PDF, TXT, MD)
 |
 v
@@ -65,7 +66,7 @@ QueryService  (embed question -> search -> inject context -> LLM)
 |
 v
 ASP.NET Core Minimal API  +  Scalar UI
-
+```
 ---
 
 ## Tech Stack
@@ -88,25 +89,134 @@ ASP.NET Core Minimal API  +  Scalar UI
 
 ## Quick Start
 
-**Prerequisites:** Docker Desktop, .NET 10 SDK, Ollama
+The project runs locally on Windows, macOS, or Linux. No Python virtual
+environment is required: this is a C#/.NET application, and its dependencies
+are restored through NuGet.
 
-```bash
-# 1. Clone
+### Prerequisites
+
+Install the following before starting the API:
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Ollama](https://ollama.com/download)
+- Git
+
+On Windows, Ollama can also be installed from PowerShell with WinGet:
+
+```powershell
+winget install --id Ollama.Ollama --exact --accept-source-agreements --accept-package-agreements
+```
+
+After the installer completes, close and reopen PowerShell so that the
+`ollama` command is added to `PATH`. Verify the installations:
+
+```powershell
+dotnet --version       # should be 10.x
+docker --version
+ollama --version
+```
+
+### Install and run
+
+```powershell
+# 1. Clone the repository
 git clone https://github.com/nishanthrjn/DocuMind.git
-cd DocuMind
+Set-Location DocuMind
 
-# 2. Pull AI models (one-time, ~2.3GB total)
+# 2. Download the local AI models (one-time, approximately 2.3 GB total)
 ollama pull nomic-embed-text
 ollama pull llama3.2
 
-# 3. Start PostgreSQL with pgvector
-docker-compose -f infra/docker-compose.yml up -d
+# 3. Start PostgreSQL with the pgvector extension
+docker compose -f .\infra\docker-compose.yml up -d
 
-# 4. Run the API (migrations apply automatically)
-dotnet run --project src/DocuMind.Api
+# Confirm the database container is running
+docker compose -f .\infra\docker-compose.yml ps
 
-# 5. Open API explorer
-# http://localhost:5000/scalar/v1
+# 4. Restore packages, build, and run the tests
+dotnet restore
+dotnet build
+dotnet test
+
+# 5. Start the API
+# Database migrations are applied automatically during API startup.
+dotnet run --project .\src\DocuMind.Api --launch-profile http
+```
+
+Keep the API terminal running. The HTTP launch profile listens on:
+
+- Health check: <http://localhost:5082/health>
+- API explorer: <http://localhost:5082/scalar/v1>
+
+The default database connection is configured for the PostgreSQL container:
+
+```text
+Host=localhost;Port=5432;Database=documind;Username=documind;Password=documind_dev
+```
+
+Ollama must be running at `http://localhost:11434`. The Windows application
+normally starts Ollama automatically. If it is not running, start it with:
+
+```powershell
+ollama serve
+```
+
+To stop PostgreSQL when you are finished:
+
+```powershell
+docker compose -f .\infra\docker-compose.yml down
+```
+
+To remove the database data as well, use `docker compose ... down -v`.
+
+---
+
+## Troubleshooting
+
+### Application Control policy blocked a DLL
+
+If the API builds successfully but startup fails with an error similar to:
+
+```text
+Could not load file or assembly 'DocuMind.Infrastructure.dll'.
+An Application Control policy has blocked this file.
+```
+
+Windows Smart App Control or an organization-managed Windows Code Integrity
+policy is blocking the locally compiled, unsigned .NET assembly. This is an
+operating-system security policy, not an application or database error.
+
+On a personal development machine, open **Windows Security** > **App &
+browser control** > **Smart App Control** and follow the available option to
+turn it off, then restart Windows if prompted. Smart App Control may not be
+reactivated without resetting or reinstalling Windows, so confirm that this is
+acceptable before changing it.
+
+On a managed computer, contact your administrator and ask them to allow the
+.NET build output directory or provide a development policy that permits
+locally compiled assemblies. Do not disable organizational security controls
+without approval.
+
+CMD
+Write-Host "--- Domain/MDM join status ---"; dsregcmd /status | Select-String "AzureAdJoined|DomainJoined|EnterpriseJoined"
+Write-Host "--- Local device or work-managed? ---"; (Get-CimInstance -ClassName Win32_ComputerSystem).PartOfDomain
+
+OUT
+--- Domain/MDM join status ---
+
+             AzureAdJoined : NO
+          EnterpriseJoined : NO
+              DomainJoined : NO
+--- Local device or work-managed? ---
+False
+
+After the policy is adjusted, rebuild and run the API again:
+
+```powershell
+dotnet clean
+dotnet build
+dotnet run --project .\src\DocuMind.Api --launch-profile http
 ```
 
 ---
@@ -137,7 +247,7 @@ curl -X POST http://localhost:5000/api/query \
 ---
 
 ## Project Structure
-
+```text
 DocuMind/
 ├── src/
 │   ├── DocuMind.Domain/          # Entities, interfaces, enums
@@ -152,7 +262,7 @@ DocuMind/
 │   └── DocuMind.Tests/           # xUnit — chunking, parser tests
 └── infra/
 └── docker-compose.yml        # PostgreSQL with pgvector
-
+```
 ---
 
 ## Key Engineering Decisions
@@ -199,6 +309,5 @@ dotnet test
 ## Author
 
 **Nishanth Rajan** — Software Engineer
-Hannover, Germany | EU Blue Card holder
 https://linkedin.com/in/nishanthrajan
 https://github.com/nishanthrjn/DocuMind
