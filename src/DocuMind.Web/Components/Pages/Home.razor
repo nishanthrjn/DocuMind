@@ -1,0 +1,314 @@
+@page "/"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+@implements IAsyncDisposable
+
+<PageTitle>DocuMind</PageTitle>
+
+<div class="dm-app">
+
+    <!-- Header -->
+    <div class="dm-header">
+        <div class="dm-logo">
+            <span class="logo-icon">📚</span>
+            <span class="logo-text">DocuMind</span>
+        </div>
+        <div class="dm-subtitle">AI Document Intelligence Platform</div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="dm-tabs">
+        <button class="dm-tab @(_tab == "upload" ? "active" : "")"
+                @onclick='() => _tab = "upload"'>📤 Upload</button>
+        <button class="dm-tab @(_tab == "query" ? "active" : "")"
+                @onclick='() => _tab = "query"'>🔍 Query</button>
+        <button class="dm-tab @(_tab == "documents" ? "active" : "")"
+                @onclick='() => _tab = "documents"'>📄 Documents</button>
+    </div>
+
+    <!-- Upload Tab -->
+    @if (_tab == "upload")
+    {
+        <div class="dm-card">
+            <div class="dm-card-title">Upload a Document</div>
+            <div class="dm-upload-area">
+                <InputFile OnChange="OnFileSelected" accept=".pdf,.txt" class="dm-file-input" />
+                <div class="dm-upload-hint">
+                    <span class="dm-upload-icon">📁</span>
+                    <span>Click to select a PDF or TXT file</span>
+                </div>
+            </div>
+            @if (_selectedFile != null)
+            {
+                <div class="dm-file-info">
+                    <span>📄 @_selectedFile.Name</span>
+                    <span class="dm-file-size">(@FormatSize(_selectedFile.Size))</span>
+                </div>
+                <button class="dm-btn" @onclick="UploadDocument" disabled="@_uploading">
+                    @if (_uploading)
+                    {
+                        <span class="spinner"></span>
+                        <span>Ingesting...</span>
+                    }
+                    else
+                    {
+                        <span>⚡ Ingest Document</span>
+                    }
+                </button>
+            }
+            @if (!string.IsNullOrEmpty(_uploadMessage))
+            {
+                <div class="dm-message @(_uploadSuccess ? "success" : "error")">
+                    @_uploadMessage
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Query Tab -->
+    @if (_tab == "query")
+    {
+        <div class="dm-card">
+            <div class="dm-card-title">Ask a Question</div>
+            <div class="dm-query-box">
+                <textarea @bind="_question" @bind:event="oninput"
+                          placeholder="What would you like to know about your documents?"
+                          rows="3" disabled="@_querying"></textarea>
+                <button class="dm-btn" @onclick="QueryDocuments"
+                        disabled="@(_querying || string.IsNullOrWhiteSpace(_question))">
+                    @if (_querying)
+                    {
+                        <span class="spinner"></span>
+                        <span>Thinking...</span>
+                    }
+                    else
+                    {
+                        <span>🔍 Ask</span>
+                    }
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_answer))
+            {
+                <div class="dm-answer">
+                    <div class="dm-answer-label">Answer</div>
+                    <div class="dm-answer-body">
+                        @((MarkupString)RenderMarkdown(_answer))
+                    </div>
+                </div>
+
+                @if (_citations.Any())
+                {
+                    <div class="dm-citations">
+                        <div class="dm-citations-label">Sources</div>
+                        @foreach (var citation in _citations)
+                        {
+                            <div class="dm-citation">
+                                <span class="dm-citation-doc">📄 @citation.DocumentName</span>
+                                <span class="dm-citation-text">@citation.Text</span>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    }
+
+    <!-- Documents Tab -->
+    @if (_tab == "documents")
+    {
+        <div class="dm-card">
+            <div class="dm-card-title">Uploaded Documents</div>
+            @if (_documents.Any())
+            {
+                <div class="dm-doc-list">
+                    @foreach (var doc in _documents)
+                    {
+                        <div class="dm-doc-item">
+                            <div class="dm-doc-icon">📄</div>
+                            <div class="dm-doc-info">
+                                <div class="dm-doc-name">@doc.FileName</div>
+                                <div class="dm-doc-meta">
+                                    @doc.ChunkCount chunks · @doc.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="dm-empty">No documents uploaded yet. Go to Upload tab to add one.</div>
+            }
+            <button class="dm-btn-secondary" @onclick="LoadDocuments">🔄 Refresh</button>
+        </div>
+    }
+
+</div>
+
+@code {
+    private string _tab = "upload";
+
+    // Upload
+    private IBrowserFile? _selectedFile;
+    private bool          _uploading      = false;
+    private string        _uploadMessage  = "";
+    private bool          _uploadSuccess  = false;
+
+    // Query
+    private string        _question = "";
+    private string        _answer   = "";
+    private bool          _querying = false;
+    private List<Citation> _citations = new();
+
+    // Documents
+    private List<DocumentSummary> _documents = new();
+
+    private HttpClient _http = new() { BaseAddress = new Uri("http://localhost:5000") };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await LoadDocuments();
+    }
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        _selectedFile   = e.File;
+        _uploadMessage  = "";
+        StateHasChanged();
+    }
+
+    private async Task UploadDocument()
+    {
+        if (_selectedFile == null) return;
+        _uploading     = true;
+        _uploadMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            using var content = new MultipartFormDataContent();
+            using var stream  = _selectedFile.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024);
+            using var sc      = new StreamContent(stream);
+            content.Add(sc, "file", _selectedFile.Name);
+
+            var response = await _http.PostAsync("/documents", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _uploadSuccess  = true;
+                _uploadMessage  = $"✅ '{_selectedFile.Name}' ingested successfully!";
+                _selectedFile   = null;
+                await LoadDocuments();
+            }
+            else
+            {
+                _uploadSuccess = false;
+                _uploadMessage = $"❌ Upload failed: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _uploadSuccess = false;
+            _uploadMessage = $"❌ Error: {ex.Message}";
+        }
+
+        _uploading = false;
+        StateHasChanged();
+    }
+
+    private async Task QueryDocuments()
+    {
+        if (string.IsNullOrWhiteSpace(_question)) return;
+        _querying  = true;
+        _answer    = "";
+        _citations = new();
+        StateHasChanged();
+
+        try
+        {
+            var payload  = System.Text.Json.JsonSerializer.Serialize(new { question = _question });
+            var content  = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
+            var response = await _http.PostAsync("/query", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var doc  = System.Text.Json.JsonDocument.Parse(json);
+
+                _answer = doc.RootElement.TryGetProperty("answer", out var a)
+                    ? a.GetString() ?? "" : "";
+
+                if (doc.RootElement.TryGetProperty("citations", out var cits))
+                {
+                    foreach (var c in cits.EnumerateArray())
+                    {
+                        _citations.Add(new Citation(
+                            c.TryGetProperty("documentName", out var dn) ? dn.GetString() ?? "" : "",
+                            c.TryGetProperty("text",         out var tx) ? tx.GetString() ?? "" : ""
+                        ));
+                    }
+                }
+            }
+            else
+            {
+                _answer = $"Query failed: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _answer = $"Error: {ex.Message}";
+        }
+
+        _querying = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadDocuments()
+    {
+        try
+        {
+            var response = await _http.GetAsync("/documents");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var doc  = System.Text.Json.JsonDocument.Parse(json);
+                _documents = new();
+
+                foreach (var d in doc.RootElement.EnumerateArray())
+                {
+                    _documents.Add(new DocumentSummary(
+                        d.TryGetProperty("fileName",   out var fn) ? fn.GetString() ?? "" : "",
+                        d.TryGetProperty("chunkCount", out var cc) ? cc.GetInt32() : 0,
+                        d.TryGetProperty("createdAt",  out var ca)
+                            ? DateTime.TryParse(ca.GetString(), out var dt) ? dt : DateTime.Now
+                            : DateTime.Now
+                    ));
+                }
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch { }
+    }
+
+    private string RenderMarkdown(string md)
+    {
+        try { return Markdig.Markdown.ToHtml(md); }
+        catch { return md; }
+    }
+
+    private string FormatSize(long bytes) =>
+        bytes < 1024 * 1024
+            ? $"{bytes / 1024.0:F1} KB"
+            : $"{bytes / (1024.0 * 1024):F1} MB";
+
+    public ValueTask DisposeAsync()
+    {
+        _http.Dispose();
+        return ValueTask.CompletedTask;
+    }
+
+    record Citation(string DocumentName, string Text);
+    record DocumentSummary(string FileName, int ChunkCount, DateTime CreatedAt);
+}
