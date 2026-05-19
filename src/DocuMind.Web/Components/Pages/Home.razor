@@ -164,7 +164,7 @@
     // Documents
     private List<DocumentSummary> _documents = new();
 
-    private HttpClient _http = new() { BaseAddress = new Uri("http://localhost:5000") };
+    private HttpClient _http = new() { BaseAddress = new Uri("http://localhost:5000"), Timeout = TimeSpan.FromMinutes(10) };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
