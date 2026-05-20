@@ -191,6 +191,9 @@
             using var content = new MultipartFormDataContent();
             using var stream  = _selectedFile.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024);
             using var sc      = new StreamContent(stream);
+            var ext = System.IO.Path.GetExtension(_selectedFile.Name).ToLower();
+            sc.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
+                ext == ".pdf" ? "application/pdf" : "text/plain");
             content.Add(sc, "file", _selectedFile.Name);
 
             var response = await _http.PostAsync("/api/documents/ingest", content);
