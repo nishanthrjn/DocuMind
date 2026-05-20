@@ -19,6 +19,8 @@ builder.Services.ConfigureHttpClientDefaults(b =>
     b.ConfigureHttpClient(c => c.Timeout = TimeSpan.FromMinutes(15)));
 var ollamaEmbedModel  = builder.Configuration["Ollama:EmbeddingModel"] ?? "nomic-embed-text";
 var ollamaChatModel   = builder.Configuration["Ollama:ChatModel"]      ?? "llama3.2";
+var groqApiKey        = builder.Configuration["Groq:ApiKey"]             ?? "";
+var groqChatModel     = builder.Configuration["Groq:ChatModel"]          ?? "llama-3.3-70b-versatile";
 
 builder.Services.AddDbContextFactory<DocuMindDbContext>(options =>
     options.UseNpgsql(connectionString, o => o.UseVector()));
@@ -26,7 +28,18 @@ builder.Services.AddDbContextFactory<DocuMindDbContext>(options =>
 #pragma warning disable SKEXP0070
 var kernelBuilder = Kernel.CreateBuilder();
 kernelBuilder.AddOllamaTextEmbeddingGeneration(ollamaEmbedModel, new Uri(ollamaEndpoint));
-kernelBuilder.AddOllamaChatCompletion(ollamaChatModel, new Uri(ollamaEndpoint));
+// Use Groq for chat — fast cloud inference (< 2 seconds vs 60+ seconds on CPU)
+if (!string.IsNullOrEmpty(groqApiKey))
+{
+    kernelBuilder.AddOpenAIChatCompletion(
+        modelId:  groqChatModel,
+        apiKey:   groqApiKey,
+        endpoint: new Uri("https://api.groq.com/openai/v1"));
+}
+else
+{
+    kernelBuilder.AddOllamaChatCompletion(ollamaChatModel, new Uri(ollamaEndpoint));
+}
 var kernel = kernelBuilder.Build();
 #pragma warning restore SKEXP0070
 
