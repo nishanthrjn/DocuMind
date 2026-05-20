@@ -134,6 +134,15 @@ app.MapPost("/api/documents/ingest", async (
 }).WithName("IngestDocument").WithTags("Documents")
   .DisableAntiforgery();
 
+app.MapDelete("/api/documents", async (
+    IDocumentRepository docRepo, IChunkRepository chunkRepo,
+    DocuMindDbContext db, CancellationToken ct) =>
+{
+    await db.DocumentChunks.ExecuteDeleteAsync(ct);
+    await db.Documents.ExecuteDeleteAsync(ct);
+    return Results.Ok(new { Message = "All documents deleted" });
+}).WithName("DeleteAllDocuments").WithTags("Documents");
+
 app.MapPost("/api/query", async (
     QueryRequest request, IQueryService queryService, CancellationToken ct) =>
 {
