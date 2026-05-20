@@ -193,7 +193,7 @@
             using var sc      = new StreamContent(stream);
             content.Add(sc, "file", _selectedFile.Name);
 
-            var response = await _http.PostAsync("/documents", content);
+            var response = await _http.PostAsync("/api/documents/ingest", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -230,7 +230,7 @@
         {
             var payload  = System.Text.Json.JsonSerializer.Serialize(new { question = _question });
             var content  = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
-            var response = await _http.PostAsync("/query", content);
+            var response = await _http.PostAsync("/api/query", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -269,7 +269,7 @@
     {
         try
         {
-            var response = await _http.GetAsync("/documents");
+            var response = await _http.GetAsync("/api/documents");
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
