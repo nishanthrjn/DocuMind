@@ -248,8 +248,8 @@
                     foreach (var c in cits.EnumerateArray())
                     {
                         _citations.Add(new Citation(
-                            c.TryGetProperty("documentName", out var dn) ? dn.GetString() ?? "" : "",
-                            c.TryGetProperty("text",         out var tx) ? tx.GetString() ?? "" : ""
+                            c.TryGetProperty("fileName",     out var dn) ? dn.GetString() ?? "" : "",
+                            c.TryGetProperty("chunkPreview", out var tx) ? tx.GetString() ?? "" : ""
                         ));
                     }
                 }
