@@ -141,6 +141,13 @@
                 <div class="dm-empty">No documents uploaded yet. Go to Upload tab to add one.</div>
             }
             <button class="dm-btn-secondary" @onclick="LoadDocuments">🔄 Refresh</button>
+            <button class="dm-btn-danger" @onclick="DeleteAllDocuments">🗑️ Delete All Documents</button>
+            @if (!string.IsNullOrEmpty(_deleteMessage))
+            {
+                <div class="dm-message @(_deleteSuccess ? "success" : "error")" style="margin-top:12px">
+                    @_deleteMessage
+                </div>
+            }
         </div>
     }
 
@@ -305,6 +312,32 @@
         bytes < 1024 * 1024
             ? $"{bytes / 1024.0:F1} KB"
             : $"{bytes / (1024.0 * 1024):F1} MB";
+
+    private async Task DeleteAllDocuments()
+    {
+        _deleteMessage = "";
+        try
+        {
+            var response = await _http.DeleteAsync("/api/documents");
+            if (response.IsSuccessStatusCode)
+            {
+                _deleteSuccess = true;
+                _deleteMessage = "✅ All documents deleted successfully.";
+                _documents = new();
+            }
+            else
+            {
+                _deleteSuccess = false;
+                _deleteMessage = $"❌ Delete failed: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _deleteSuccess = false;
+            _deleteMessage = $"❌ Error: {ex.Message}";
+        }
+        StateHasChanged();
+    }
 
     public ValueTask DisposeAsync()
     {
