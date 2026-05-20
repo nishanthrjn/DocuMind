@@ -13,6 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString  = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Host=localhost;Port=5432;Database=documind;Username=documind;Password=documind_dev";
 var ollamaEndpoint    = builder.Configuration["Ollama:Endpoint"]       ?? "http://localhost:11434";
+
+// Set 15-minute timeout for all HttpClients — Ollama needs long timeout on CPU
+builder.Services.ConfigureHttpClientDefaults(b =>
+    b.ConfigureHttpClient(c => c.Timeout = TimeSpan.FromMinutes(15)));
 var ollamaEmbedModel  = builder.Configuration["Ollama:EmbeddingModel"] ?? "nomic-embed-text";
 var ollamaChatModel   = builder.Configuration["Ollama:ChatModel"]      ?? "llama3.2";
 
