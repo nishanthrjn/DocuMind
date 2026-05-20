@@ -12,8 +12,10 @@ obj/
 
 # Environment
 .env
-appsettings.Development.json
+src/DocuMind.Api/appsettings.json
+src/DocuMind.Api/appsettings.Development.json
 
 # OS
 .DS_Store
 Thumbs.db
+
