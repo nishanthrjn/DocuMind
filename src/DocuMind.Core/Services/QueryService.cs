@@ -1,6 +1,6 @@
 using DocuMind.Domain.Interfaces;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.SemanticKernel.ChatCompletion;
 using System.Diagnostics;
 using System.Text;
 
@@ -8,10 +8,10 @@ namespace DocuMind.Core.Services;
 
 public class QueryService : IQueryService
 {
-    private readonly IEmbeddingService  _embedder;
-    private readonly IChunkRepository   _chunkRepo;
+    private readonly IEmbeddingService   _embedder;
+    private readonly IChunkRepository    _chunkRepo;
     private readonly IDocumentRepository _documentRepo;
-    private readonly Kernel             _kernel;
+    private readonly Kernel              _kernel;
 
     public QueryService(
         IEmbeddingService    embedder,
@@ -26,14 +26,17 @@ public class QueryService : IQueryService
     }
 
     public async Task<QueryResult> QueryAsync(
-        string question, int topK = 5, CancellationToken ct = default)
+        string question,
+        int topK = 5,
+        List<(string Role, string Content)>? history = null,
+        CancellationToken ct = default)
     {
         var sw = Stopwatch.StartNew();
 
-        // Step 1 — embed the question using the same model used for ingestion
+        // Step 1 — embed the question
         var questionEmbedding = await _embedder.EmbedAsync(question, ct);
 
-        // Step 2 — vector similarity search — cosine distance in PostgreSQL
+        // Step 2 — vector similarity search
         var relevantChunks = await _chunkRepo.SearchSimilarAsync(
             questionEmbedding, topK, ct);
 
@@ -48,7 +51,7 @@ public class QueryService : IQueryService
         // Step 3 — build context from retrieved chunks
         var contextBuilder = new StringBuilder();
         contextBuilder.AppendLine("Use the following document excerpts to answer the question.");
-        contextBuilder.AppendLine("Always cite the source document name for each piece of information.");
+        contextBuilder.AppendLine("Always cite the source document name.");
         contextBuilder.AppendLine();
 
         foreach (var chunk in relevantChunks)
@@ -59,22 +62,40 @@ public class QueryService : IQueryService
             contextBuilder.AppendLine();
         }
 
-        // Step 4 — inject context into prompt and call LLM
-        var prompt = $"""
+        // Step 4 — build chat history with conversation context
+        var chatHistory = new ChatHistory();
+
+        // System prompt with document context
+        chatHistory.AddSystemMessage($"""
+            You are an AI assistant that answers questions based on uploaded documents.
+            Always cite your sources. If the answer is not in the documents, say so clearly.
+
+            Document context:
             {contextBuilder}
-            Question: {question}
+            """);
 
-            Answer based only on the provided context. If the answer is not in the context,
-            say "I could not find this information in the provided documents."
-            Always end your answer with a citations section listing the sources you used.
-            """;
+        // Add previous conversation turns
+        if (history != null)
+        {
+            foreach (var (role, content) in history)
+            {
+                if (role == "user")
+                    chatHistory.AddUserMessage(content);
+                else if (role == "assistant")
+                    chatHistory.AddAssistantMessage(content);
+            }
+        }
 
-        var response = await _kernel.InvokePromptAsync(prompt,
-            cancellationToken: ct);
+        // Add current question
+        chatHistory.AddUserMessage(question);
+
+        // Step 5 — call LLM with full conversation history
+        var chat    = _kernel.GetRequiredService<IChatCompletionService>();
+        var response = await chat.GetChatMessageContentAsync(chatHistory, cancellationToken: ct);
 
         sw.Stop();
 
-        // Step 5 — build citation list from retrieved chunks
+        // Step 6 — build citations
         var citations = new List<Citation>();
         foreach (var chunk in relevantChunks)
         {
@@ -86,7 +107,7 @@ public class QueryService : IQueryService
         }
 
         return new QueryResult(
-            Answer:    response.ToString(),
+            Answer:    response.Content ?? "",
             Citations: citations,
             LatencyMs: sw.Elapsed.TotalMilliseconds);
     }
