@@ -64,3 +64,32 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
 @keyframes spin { to { transform: rotate(360deg); } }
 .dm-btn-danger { background: rgba(247,106,106,0.15); border: 1px solid var(--danger); border-radius: 8px; color: var(--danger); cursor: pointer; font-size: 0.85rem; margin-top: 8px; margin-left: 8px; padding: 8px 16px; transition: all 0.2s; }
 .dm-btn-danger:hover { background: rgba(247,106,106,0.3); }
+
+.dm-conversation { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; max-height: 500px; overflow-y: auto; padding: 4px; }
+.dm-msg { border-radius: 12px; padding: 14px 16px; max-width: 90%; }
+.dm-msg-user { align-self: flex-end; background: rgba(79,142,247,0.15); border: 1px solid rgba(79,142,247,0.3); }
+.dm-msg-assistant { align-self: flex-start; background: var(--surface2); border: 1px solid var(--border); width: 100%; }
+.dm-msg-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
+.dm-msg-user .dm-msg-label { color: var(--accent); }
+.dm-msg-assistant .dm-msg-label { color: var(--accent2); }
+.dm-msg-body { color: var(--text); line-height: 1.7; font-size: 0.95rem; }
+.dm-msg-body p { margin-bottom: 8px; }
+.dm-msg-body ul, .dm-msg-body ol { padding-left: 20px; margin-bottom: 8px; }
+.dm-msg-body li { margin-bottom: 4px; }
+.dm-msg-body code { background: var(--surface); border-radius: 4px; color: var(--accent2); font-size: 0.85em; padding: 1px 5px; }
+.dm-msg-citations { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.dm-citation-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text2); font-size: 0.75rem; padding: 4px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dm-input-row { display: flex; gap: 8px; align-items: flex-end; margin-top: 8px; }
+.dm-input-row textarea { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 0.95rem; outline: none; padding: 10px 12px; resize: none; }
+.dm-input-row textarea:focus { border-color: var(--accent); }
+.dm-send-btn { background: var(--accent); border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 1.1rem; height: 44px; width: 44px; flex-shrink: 0; transition: opacity 0.2s; }
+.dm-send-btn:hover:not(:disabled) { opacity: 0.85; }
+.dm-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.dm-empty-chat { text-align: center; padding: 40px 20px; color: var(--text2); }
+.dm-empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.dm-empty-hint { font-size: 0.8rem; margin-top: 8px; color: var(--text2); opacity: 0.7; }
+.dm-typing { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+.dm-typing span { width: 8px; height: 8px; background: var(--accent2); border-radius: 50%; animation: bounce 1.2s infinite; }
+.dm-typing span:nth-child(2) { animation-delay: 0.2s; }
+.dm-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
