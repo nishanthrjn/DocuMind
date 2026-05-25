@@ -93,3 +93,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
 .dm-typing span:nth-child(2) { animation-delay: 0.2s; }
 .dm-typing span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+.dm-msg-body table { border-collapse: collapse; width: 100%; margin-bottom: 12px; font-size: 0.88rem; }
+.dm-msg-body th { background: var(--surface); color: var(--accent2); font-weight: 600; padding: 8px 12px; text-align: left; border: 1px solid var(--border); }
+.dm-msg-body td { padding: 6px 12px; border: 1px solid var(--border); color: var(--text); }
+.dm-msg-body tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
