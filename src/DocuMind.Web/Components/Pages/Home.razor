@@ -384,13 +384,7 @@
 
     private string RenderMarkdown(string md)
     {
-        try
-        {
-            var pipeline = new Markdig.MarkdownPipelineBuilder()
-                .UseAdvancedExtensions()
-                .Build();
-            return Markdig.Markdown.ToHtml(md, pipeline);
-        }
+        try { return Markdig.Markdown.ToHtml(md); }
         catch { return md; }
     }
 
