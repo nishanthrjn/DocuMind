@@ -1,6 +1,7 @@
 @page "/"
 @rendermode InteractiveServer
 @implements IAsyncDisposable
+@inject IJSRuntime JS
 
 <PageTitle>DocuMind</PageTitle>
 
@@ -273,6 +274,7 @@
 
         _querying = false;
         StateHasChanged();
+        try { await JS.InvokeVoidAsync("renderMath"); } catch { }
     }
 
     private void ClearConversation()
