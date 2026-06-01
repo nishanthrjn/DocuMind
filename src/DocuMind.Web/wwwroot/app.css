@@ -98,3 +98,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
 .dm-msg-body th { background: var(--surface); color: var(--accent2); font-weight: 600; padding: 8px 12px; text-align: left; border: 1px solid var(--border); }
 .dm-msg-body td { padding: 6px 12px; border: 1px solid var(--border); color: var(--text); }
 .dm-msg-body tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+.dm-btn-icon { background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text2); cursor: pointer; font-size: 0.9rem; padding: 4px 8px; transition: all 0.2s; flex-shrink: 0; }
+.dm-btn-icon:hover { background: rgba(247,106,106,0.15); border-color: var(--danger); color: var(--danger); }
+.dm-status-processed { color: var(--success); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+.dm-status-failed { color: var(--danger); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+.dm-status-processing { color: var(--warning); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
