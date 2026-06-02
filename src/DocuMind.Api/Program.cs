@@ -149,7 +149,10 @@ app.MapPost("/api/query", async (
     if (string.IsNullOrWhiteSpace(request.Question))
         return Results.BadRequest(new { Error = "Question cannot be empty" });
 
-    var result = await queryService.QueryAsync(request.Question, request.TopK, ct);
+    var history = request.History?
+        .Select(h => (h.Role, h.Content))
+        .ToList();
+    var result = await queryService.QueryAsync(request.Question, request.TopK, history, ct);
     return Results.Ok(new
     {
         result.Answer,
