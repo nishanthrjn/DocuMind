@@ -104,3 +104,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
 .dm-status-processed { color: var(--success); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
 .dm-status-failed { color: var(--danger); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
 .dm-status-processing { color: var(--warning); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+
+.dm-msg-body { overflow-wrap: break-word; word-break: break-word; }
+.dm-msg-body table { table-layout: fixed; width: 100%; overflow: hidden; }
+.dm-msg-body td, .dm-msg-body th { overflow-wrap: break-word; word-break: break-word; max-width: 0; }
+.dm-citation-pill { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
