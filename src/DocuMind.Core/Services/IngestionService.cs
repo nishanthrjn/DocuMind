@@ -55,6 +55,11 @@ public class IngestionService
             // 2. Parse raw text from file
             var parser  = _dispatcher.GetParser(contentType);
             var rawText = await parser.ParseAsync(fileStream, ct);
+
+            // Strip null bytes and invalid characters — PostgreSQL rejects 0x00 in text columns
+            rawText = rawText.Replace("\0", " ").Trim();
+            rawText = new string(rawText.Where(c => c != '\0').ToArray());
+
             _logger.LogInformation("Parsed {Chars} characters from {FileName}",
                 rawText.Length, fileName);
 
