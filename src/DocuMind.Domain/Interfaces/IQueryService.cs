@@ -7,5 +7,9 @@ public record Citation(string FileName, int? PageNumber, string ChunkPreview);
 
 public interface IQueryService
 {
-    Task<QueryResult> QueryAsync(string question, int topK = 5, CancellationToken ct = default);
+    Task<QueryResult> QueryAsync(
+        string question,
+        int topK = 5,
+        List<(string Role, string Content)>? history = null,
+        CancellationToken ct = default);
 }
