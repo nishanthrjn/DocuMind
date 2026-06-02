@@ -161,4 +161,5 @@ app.MapPost("/api/query", async (
 
 app.Run();
 
-public record QueryRequest(string Question, int TopK = 5);
+public record QueryRequest(string Question, int TopK = 5, List<ConversationMessage>? History = null);
+public record ConversationMessage(string Role, string Content);
