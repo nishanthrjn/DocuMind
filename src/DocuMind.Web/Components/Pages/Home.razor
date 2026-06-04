@@ -218,9 +218,10 @@
 
         try
         {
-            // Build history from previous turns
+            // Build history from previous turns — keep last 4 turns to avoid token limits
             var history = _conversation
                 .Take(_conversation.Count - 1)
+                .TakeLast(4)
                 .Select(t => new HistoryMessage(t.Role, t.Content))
                 .ToList();
 
@@ -243,14 +244,16 @@
                     ? a.GetString() ?? "" : "";
 
                 var citations = new List<CitationDisplay>();
+                var seenCitations = new HashSet<string>();
                 if (doc.RootElement.TryGetProperty("citations", out var cits))
                 {
                     foreach (var c in cits.EnumerateArray())
                     {
-                        citations.Add(new CitationDisplay(
-                            c.TryGetProperty("fileName",     out var fn) ? fn.GetString() ?? "" : "",
-                            c.TryGetProperty("chunkPreview", out var cp) ? cp.GetString() ?? "" : ""
-                        ));
+                        var fn  = c.TryGetProperty("fileName",     out var f) ? f.GetString() ?? "" : "";
+                        var cp  = c.TryGetProperty("chunkPreview", out var p) ? p.GetString() ?? "" : "";
+                        var key = fn + cp[..Math.Min(50, cp.Length)];
+                        if (seenCitations.Add(key))
+                            citations.Add(new CitationDisplay(fn, cp));
                     }
                 }
 
@@ -381,7 +384,13 @@
 
     private string RenderMarkdown(string md)
     {
-        try { return Markdig.Markdown.ToHtml(md); }
+        try
+        {
+            var pipeline = new Markdig.MarkdownPipelineBuilder()
+                .UseAdvancedExtensions()
+                .Build();
+            return Markdig.Markdown.ToHtml(md, pipeline);
+        }
         catch { return md; }
     }
 
