@@ -1,9 +1,10 @@
-using System.Text.RegularExpressions;
+using DocuMind.Domain.Entities;
 using DocuMind.Domain.Interfaces;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.SemanticKernel;
+using System.Text.RegularExpressions;
 
 namespace DocuMind.Core.Services;
 
@@ -34,12 +35,8 @@ public class QueryService : IQueryService
     {
         var sw = Stopwatch.StartNew();
 
-        // Step 1 — embed the question
         var questionEmbedding = await _embedder.EmbedAsync(question, ct);
-
-        // Step 2 — vector similarity search
-        var relevantChunks = await _chunkRepo.SearchSimilarAsync(
-            questionEmbedding, topK, ct);
+        var relevantChunks    = await _chunkRepo.SearchSimilarAsync(questionEmbedding, topK, ct);
 
         if (relevantChunks.Count == 0)
         {
@@ -49,54 +46,51 @@ public class QueryService : IQueryService
                 LatencyMs: sw.Elapsed.TotalMilliseconds);
         }
 
-        // Step 3 — build context from retrieved chunks
         var contextBuilder = new StringBuilder();
         contextBuilder.AppendLine("Use the following document excerpts to answer the question.");
-        contextBuilder.AppendLine("Always cite the source document name.");
         contextBuilder.AppendLine();
 
         foreach (var chunk in relevantChunks)
         {
             var doc = await _documentRepo.GetByIdAsync(chunk.DocumentId, ct);
-            contextBuilder.AppendLine($"[Source: {doc?.FileName ?? "Unknown"}, Page: {chunk.PageNumber}]");
+            contextBuilder.AppendLine($"[Source: {doc?.FileName ?? "Unknown"}]");
             contextBuilder.AppendLine(chunk.Content);
             contextBuilder.AppendLine();
         }
 
-        // Step 4 — build chat history with conversation context
         var chatHistory = new ChatHistory();
-
-        // System prompt with document context
         chatHistory.AddSystemMessage($"""
-            You are an AI assistant that answers questions based on uploaded documents.
-            Always cite your sources. If the answer is not in the documents, say so clearly.
+            You are DocuMind, an expert AI research assistant. Answer questions based strictly on the provided document excerpts.
+
+            FORMATTING RULES:
+            - Write all mathematical formulas in plain text only. Never use LaTeX, backslash commands, or dollar signs.
+            - Example: write "h_t = exp(delta*A) * h_(t-1)" not backslash commands
+            - Use **bold** for key terms and concepts
+            - Use bullet points for lists of findings
+            - Keep answers concise and well-structured
+            - Always cite the source document at the end
+            - If the answer is not in the documents, say so clearly
 
             Document context:
             {contextBuilder}
             """);
 
-        // Add previous conversation turns
         if (history != null)
         {
             foreach (var (role, content) in history)
             {
-                if (role == "user")
-                    chatHistory.AddUserMessage(content);
-                else if (role == "assistant")
-                    chatHistory.AddAssistantMessage(content);
+                if (role == "user") chatHistory.AddUserMessage(content);
+                else if (role == "assistant") chatHistory.AddAssistantMessage(content);
             }
         }
 
-        // Add current question
         chatHistory.AddUserMessage(question);
 
-        // Step 5 — call LLM with full conversation history
-        var chat    = _kernel.GetRequiredService<IChatCompletionService>();
+        var chat     = _kernel.GetRequiredService<IChatCompletionService>();
         var response = await chat.GetChatMessageContentAsync(chatHistory, cancellationToken: ct);
 
         sw.Stop();
 
-        // Step 6 — build citations
         var citations = new List<Citation>();
         foreach (var chunk in relevantChunks)
         {
@@ -107,8 +101,10 @@ public class QueryService : IQueryService
                 ChunkPreview: chunk.Content[..Math.Min(150, chunk.Content.Length)] + "..."));
         }
 
+        var answer = CleanLatex(response.Content ?? "");
+
         return new QueryResult(
-            Answer:    CleanLatex(response.Content ?? ""),
+            Answer:    answer,
             Citations: citations,
             LatencyMs: sw.Elapsed.TotalMilliseconds);
     }
@@ -117,44 +113,31 @@ public class QueryService : IQueryService
     {
         if (string.IsNullOrEmpty(text)) return text;
 
-        // Remove display math delimiters [ ... ] and ( ... )
-        text = Regex.Replace(text, @"\\\[|\\\]|\\\(|\\\)", "");
+        // Simple string replacements — no regex needed for LaTeX commands
+        var replacements = new (string From, string To)[]
+        {
+            (@"\approx",  "≈"),  (@"\Delta",  "Δ"),  (@"\delta",  "δ"),
+            (@"\lambda",  "λ"),  (@"\Lambda", "Λ"),  (@"\alpha",  "α"),
+            (@"\beta",    "β"),  (@"\gamma",  "γ"),  (@"\Gamma",  "Γ"),
+            (@"\tau",     "τ"),  (@"\sigma",  "σ"),  (@"\Sigma",  "Σ"),
+            (@"\mu",      "μ"),  (@"\pi",     "π"),  (@"\theta",  "θ"),
+            (@"\phi",     "φ"),  (@"\omega",  "ω"),  (@"\cdot",   "·"),
+            (@"\times",   "×"),  (@"\leq",    "≤"),  (@"\geq",    "≥"),
+            (@"\neq",     "≠"),  (@"\infty",  "∞"),  (@"\int",    "∫"),
+            (@"\sum",     "Σ"),  (@"\prod",   "Π"),  (@"\in",     "∈"),
+            (@"\exp",     "exp"),(@"\log",    "log"),(@"\mathbf", ""),
+            (@"\mathbb",  ""),   (@"\mathrm", ""),   (@"\text",   ""),
+            (@"\left",    ""),   (@"\right",  ""),   (@"\bigl",   ""),
+            (@"\bigr",    ""),   (@"\frac",   ""),   (@"\sqrt",   "sqrt"),
+            (@"\[",       ""),   (@"\]",      ""),   (@"\(",      ""),
+            (@"\)",       ""),
+        };
 
-        // Remove common LaTeX commands but keep content
-        text = Regex.Replace(text, @"\mathbf\{([^}]+)\}", "$1");
-        text = Regex.Replace(text, @"\mathbb\{([^}]+)\}", "$1");
-        text = Regex.Replace(text, @"\text\{([^}]+)\}", "$1");
-        text = Regex.Replace(text, @"\mathrm\{([^}]+)\}", "$1");
-        text = Regex.Replace(text, @"\operatorname\{([^}]+)\}", "$1");
-        text = Regex.Replace(text, @"\left|\right|\bigl|\bigr|\Bigl|\Bigr", "");
-        text = Regex.Replace(text, @"\approx", "≈");
-        text = Regex.Replace(text, @"\Delta", "Δ");
-        text = Regex.Replace(text, @"\lambda", "λ");
-        text = Regex.Replace(text, @"\alpha", "α");
-        text = Regex.Replace(text, @"\beta", "β");
-        text = Regex.Replace(text, @"\gamma", "γ");
-        text = Regex.Replace(text, @"\tau", "τ");
-        text = Regex.Replace(text, @"\sigma", "σ");
-        text = Regex.Replace(text, @"\exp", "exp");
-        text = Regex.Replace(text, @"\frac\{([^}]+)\}\{([^}]+)\}", "($1)/($2)");
-        text = Regex.Replace(text, @"\sqrt\{([^}]+)\}", "sqrt($1)");
-        text = Regex.Replace(text, @"\cdot", "·");
-        text = Regex.Replace(text, @"\times", "×");
-        text = Regex.Replace(text, @"\in", "∈");
-        text = Regex.Replace(text, @"\sum", "Σ");
-        text = Regex.Replace(text, @"\prod", "Π");
-        text = Regex.Replace(text, @"\infty", "∞");
-        text = Regex.Replace(text, @"\leq", "≤");
-        text = Regex.Replace(text, @"\geq", "≥");
-        text = Regex.Replace(text, @"\neq", "≠");
-        text = Regex.Replace(text, @"\int", "∫");
+        foreach (var (from, to) in replacements)
+            text = text.Replace(from, to);
 
-        // Remove remaining backslash commands
-        text = Regex.Replace(text, @"\[a-zA-Z]+\{([^}]*)\}", "$1");
-        text = Regex.Replace(text, @"\[a-zA-Z]+", "");
-
-        // Clean up extra spaces
-        text = Regex.Replace(text, @"  +", " ");
+        // Remove remaining { } braces from LaTeX
+        text = text.Replace("{", "").Replace("}", "");
 
         return text.Trim();
     }
