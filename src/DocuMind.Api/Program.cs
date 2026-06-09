@@ -147,6 +147,17 @@ app.MapDelete("/api/documents", async (
     return Results.Ok(new { Message = "All documents deleted" });
 }).WithName("DeleteAllDocuments").WithTags("Documents");
 
+app.MapDelete("/api/documents/{id:guid}", async (
+    Guid id, DocuMindDbContext db, CancellationToken ct) =>
+{
+    var doc = await db.Documents.FindAsync(new object[] { id }, ct);
+    if (doc is null) return Results.NotFound(new { Error = "Document not found" });
+    await db.DocumentChunks.Where(c => c.DocumentId == id).ExecuteDeleteAsync(ct);
+    db.Documents.Remove(doc);
+    await db.SaveChangesAsync(ct);
+    return Results.Ok(new { Message = $"{doc.FileName} deleted" });
+}).WithName("DeleteDocument").WithTags("Documents");
+
 app.MapPost("/api/query", async (
     QueryRequest request, IQueryService queryService, CancellationToken ct) =>
 {
