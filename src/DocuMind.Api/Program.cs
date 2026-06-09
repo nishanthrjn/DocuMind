@@ -18,6 +18,10 @@ var ollamaEndpoint    = builder.Configuration["Ollama:Endpoint"]       ?? "http:
 builder.Services.ConfigureHttpClientDefaults(b =>
     b.ConfigureHttpClient(c => c.Timeout = TimeSpan.FromMinutes(15)));
 var ollamaEmbedModel  = builder.Configuration["Ollama:EmbeddingModel"] ?? "nomic-embed-text";
+
+// Extend timeout for embedding — large PDFs take longer to embed on CPU
+builder.Services.ConfigureHttpClientDefaults(b =>
+    b.ConfigureHttpClient(c => c.Timeout = TimeSpan.FromMinutes(10)));
 var ollamaChatModel   = builder.Configuration["Ollama:ChatModel"]      ?? "llama3.2";
 var groqApiKey        = builder.Configuration["Groq:ApiKey"]             ?? "";
 var groqChatModel     = builder.Configuration["Groq:ChatModel"]          ?? "llama-3.3-70b-versatile";
