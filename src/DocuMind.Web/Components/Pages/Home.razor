@@ -46,8 +46,8 @@
                                         <div class="dm-msg-citations">
                                             @foreach (var c in msg.Citations)
                                             {
-                                                <div class="dm-citation-pill">
-                                                    📄 @c.FileName
+                                                <div class="dm-citation-pill" title="@c.FileName">
+                                                    📄 @TruncateFilename(c.FileName)
                                                 </div>
                                             }
                                         </div>
@@ -467,6 +467,9 @@
         try { return Markdig.Markdown.ToHtml(md); }
         catch { return md; }
     }
+
+    private string TruncateFilename(string name) =>
+        name.Length > 40 ? name[..37] + "..." : name;
 
     private string FormatSize(long bytes) =>
         bytes < 1024 * 1024
