@@ -20,30 +20,43 @@
         <button class="dm-tab @(_tab == "upload" ? "active" : "")"
                 @onclick='() => _tab = "upload"'>📤 Upload</button>
         <button class="dm-tab @(_tab == "documents" ? "active" : "")"
-                @onclick='() => _tab = "documents"'>📄 Documents</button>
+                @onclick='() => _tab = "documents"'>📄 Documents (@_documents.Count)</button>
     </div>
 
     @if (_tab == "chat")
     {
         <div class="dm-card">
-            <div class="dm-card-title">Chat with your Documents</div>
             @if (_conversation.Any())
             {
                 <div class="dm-conversation">
                     @foreach (var msg in _conversation)
                     {
                         <div class="dm-msg dm-msg-@msg.Role">
-                            <div class="dm-msg-label">@(msg.Role == "user" ? "You" : "DocuMind")</div>
+                            <div class="dm-msg-label">
+                                @(msg.Role == "user" ? "You" : "DocuMind")
+                            </div>
                             <div class="dm-msg-body">
                                 @((MarkupString)RenderMarkdown(msg.Content))
                             </div>
-                            @if (msg.Citations.Any())
+                            @if (msg.Role == "assistant")
                             {
-                                <div class="dm-msg-citations">
-                                    @foreach (var c in msg.Citations)
+                                <div class="dm-msg-footer">
+                                    @if (msg.Citations.Any())
                                     {
-                                        <div class="dm-citation-pill">📄 @c.FileName — @c.Preview</div>
+                                        <div class="dm-msg-citations">
+                                            @foreach (var c in msg.Citations)
+                                            {
+                                                <div class="dm-citation-pill">
+                                                    📄 @c.FileName
+                                                </div>
+                                            }
+                                        </div>
                                     }
+                                    <button class="dm-copy-btn"
+                                            @onclick="() => CopyToClipboard(msg.Content)"
+                                            title="Copy answer">
+                                        📋 Copy
+                                    </button>
                                 </div>
                             }
                         </div>
@@ -52,7 +65,9 @@
                     {
                         <div class="dm-msg dm-msg-assistant">
                             <div class="dm-msg-label">DocuMind</div>
-                            <div class="dm-typing"><span></span><span></span><span></span></div>
+                            <div class="dm-typing">
+                                <span></span><span></span><span></span>
+                            </div>
                         </div>
                     }
                 </div>
@@ -61,14 +76,34 @@
             {
                 <div class="dm-empty-chat">
                     <div class="dm-empty-icon">📚</div>
-                    <div>Upload a document and start asking questions.</div>
-                    <div class="dm-empty-hint">Try: "What is this document about?"</div>
+                    <div class="dm-empty-title">Chat with your Documents</div>
+                    <div class="dm-empty-subtitle">
+                        @_documents.Count document(s) ready · Ask anything
+                    </div>
+                    @if (_documents.Any())
+                    {
+                        <div class="dm-suggestions">
+                            @foreach (var q in GetSuggestedQuestions())
+                            {
+                                <button class="dm-suggestion-btn" @onclick="() => AskSuggestion(q)">
+                                    @q
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="dm-empty-hint">
+                            Upload a document first, then start asking questions
+                        </div>
+                    }
                 </div>
             }
+
             <div class="dm-input-row">
                 <textarea @bind="_question" @bind:event="oninput"
                           @onkeydown="HandleKeyDown"
-                          placeholder="Ask a follow-up question..."
+                          placeholder="Ask a question about your documents..."
                           rows="2"
                           disabled="@_querying"></textarea>
                 <button class="dm-send-btn" @onclick="SendMessage"
@@ -79,7 +114,9 @@
             </div>
             @if (_conversation.Any())
             {
-                <button class="dm-btn-secondary" @onclick="ClearConversation">🗑️ Clear conversation</button>
+                <button class="dm-btn-secondary" @onclick="ClearConversation">
+                    🗑️ Clear conversation
+                </button>
             }
         </div>
     }
@@ -89,7 +126,8 @@
         <div class="dm-card">
             <div class="dm-card-title">Upload Documents</div>
             <div class="dm-upload-area">
-                <InputFile OnChange="OnFilesSelected" accept=".pdf,.txt" class="dm-file-input" multiple />
+                <InputFile OnChange="OnFilesSelected" accept=".pdf,.txt"
+                           class="dm-file-input" multiple />
                 <div class="dm-upload-hint">
                     <span class="dm-upload-icon">📁</span>
                     <span>Click to select one or more PDF or TXT files</span>
@@ -137,15 +175,21 @@
                     @foreach (var doc in _documents)
                     {
                         <div class="dm-doc-item">
-                            <div class="dm-doc-icon">@(doc.Status == "Failed" ? "❌" : "📄")</div>
+                            <div class="dm-doc-icon">
+                                @(doc.Status == "Failed" ? "❌" : "📄")
+                            </div>
                             <div class="dm-doc-info">
                                 <div class="dm-doc-name">@doc.FileName</div>
                                 <div class="dm-doc-meta">
-                                    <span class="dm-status-@doc.Status.ToLower()">@doc.Status</span>
-                                    · @doc.ChunkCount chunks · @doc.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                    <span class="dm-status-@doc.Status.ToLower()">
+                                        @doc.Status
+                                    </span>
+                                    · @doc.ChunkCount chunks
+                                    · @doc.CreatedAt.ToString("dd MMM yyyy HH:mm")
                                 </div>
                             </div>
-                            <button class="dm-btn-icon" @onclick="() => DeleteDocument(doc.Id)"
+                            <button class="dm-btn-icon"
+                                    @onclick="() => DeleteDocument(doc.Id)"
                                     title="Delete">🗑️</button>
                         </div>
                     }
@@ -161,7 +205,8 @@
             </div>
             @if (!string.IsNullOrEmpty(_deleteMessage))
             {
-                <div class="dm-message @(_deleteSuccess ? "success" : "error")" style="margin-top:12px">
+                <div class="dm-message @(_deleteSuccess ? "success" : "error")"
+                     style="margin-top:12px">
                     @_deleteMessage
                 </div>
             }
@@ -172,7 +217,7 @@
 @code {
     private string _tab      = "chat";
     private string _question = "";
-    private bool   _querying = false;
+    private bool   _querying  = false;
     private bool   _uploading = false;
 
     private string _uploadMessage = "";
@@ -193,6 +238,34 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender) await LoadDocuments();
+    }
+
+    private List<string> GetSuggestedQuestions()
+    {
+        var docNames = _documents
+            .Where(d => d.Status == "Processed")
+            .Select(d => d.FileName)
+            .ToList();
+
+        if (!docNames.Any()) return new();
+
+        // Generate contextual suggestions based on document names
+        var suggestions = new List<string>
+        {
+            "What are the main contributions of these papers?",
+            "Summarize the key findings across all documents",
+            "What methods or techniques are described?",
+            "What problems do these papers solve?",
+            "Compare the approaches across the documents"
+        };
+
+        return suggestions.Take(3).ToList();
+    }
+
+    private async Task AskSuggestion(string question)
+    {
+        _question = question;
+        await SendMessage();
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
@@ -220,8 +293,10 @@
                 .Select(t => new HistoryMessage(t.Role, t.Content))
                 .ToList();
 
-            var payload  = System.Text.Json.JsonSerializer.Serialize(new { question = userQuestion, topK = 5, history });
-            var content  = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
+            var payload  = System.Text.Json.JsonSerializer.Serialize(
+                new { question = userQuestion, topK = 5, history });
+            var content  = new StringContent(
+                payload, System.Text.Encoding.UTF8, "application/json");
             var response = await _http.PostAsync("/api/query", content);
 
             if (response.IsSuccessStatusCode)
@@ -229,16 +304,19 @@
                 var json = await response.Content.ReadAsStringAsync();
                 var doc  = System.Text.Json.JsonDocument.Parse(json);
 
-                var answer = doc.RootElement.TryGetProperty("answer", out var a) ? a.GetString() ?? "" : "";
+                var answer = doc.RootElement.TryGetProperty("answer", out var a)
+                    ? a.GetString() ?? "" : "";
 
-                var citations    = new List<CitationDisplay>();
+                var citations     = new List<CitationDisplay>();
                 var seenCitations = new HashSet<string>();
                 if (doc.RootElement.TryGetProperty("citations", out var cits))
                 {
                     foreach (var c in cits.EnumerateArray())
                     {
-                        var fn  = c.TryGetProperty("fileName",     out var f) ? f.GetString() ?? "" : "";
-                        var cp  = c.TryGetProperty("chunkPreview", out var p) ? p.GetString() ?? "" : "";
+                        var fn  = c.TryGetProperty("fileName",     out var f)
+                            ? f.GetString() ?? "" : "";
+                        var cp  = c.TryGetProperty("chunkPreview", out var p)
+                            ? p.GetString() ?? "" : "";
                         var key = fn + cp[..Math.Min(50, cp.Length)];
                         if (seenCitations.Add(key))
                             citations.Add(new CitationDisplay(fn, cp));
@@ -249,17 +327,24 @@
             }
             else
             {
-                _conversation.Add(new ConversationTurn("assistant", $"Query failed: {response.StatusCode}", new()));
+                _conversation.Add(new ConversationTurn("assistant",
+                    $"Query failed: {response.StatusCode}", new()));
             }
         }
         catch (Exception ex)
         {
-            _conversation.Add(new ConversationTurn("assistant", $"Error: {ex.Message}", new()));
+            _conversation.Add(new ConversationTurn("assistant",
+                $"Error: {ex.Message}", new()));
         }
 
         _querying = false;
         StateHasChanged();
-        try { await JS.InvokeVoidAsync("renderMath"); } catch { }
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        try { await JS.InvokeVoidAsync("navigator.clipboard.writeText", text); }
+        catch { }
     }
 
     private void ClearConversation()
@@ -282,8 +367,7 @@
         _uploadMessage = "";
         StateHasChanged();
 
-        int success = 0;
-        int failed  = 0;
+        int success = 0, failed = 0;
 
         foreach (var file in _selectedFiles)
         {
@@ -296,10 +380,8 @@
                 sc.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
                     ext == ".pdf" ? "application/pdf" : "text/plain");
                 content.Add(sc, "file", file.Name);
-
                 var response = await _http.PostAsync("/api/documents/ingest", content);
-                if (response.IsSuccessStatusCode) success++;
-                else failed++;
+                if (response.IsSuccessStatusCode) success++; else failed++;
             }
             catch { failed++; }
         }
@@ -347,9 +429,8 @@
     {
         try
         {
-            var response = await _http.DeleteAsync($"/api/documents/{id}");
-            if (response.IsSuccessStatusCode)
-                await LoadDocuments();
+            var r = await _http.DeleteAsync($"/api/documents/{id}");
+            if (r.IsSuccessStatusCode) await LoadDocuments();
         }
         catch { }
     }
@@ -388,12 +469,15 @@
     }
 
     private string FormatSize(long bytes) =>
-        bytes < 1024 * 1024 ? $"{bytes / 1024.0:F1} KB" : $"{bytes / (1024.0 * 1024):F1} MB";
+        bytes < 1024 * 1024
+            ? $"{bytes / 1024.0:F1} KB"
+            : $"{bytes / (1024.0 * 1024):F1} MB";
 
     public ValueTask DisposeAsync() { _http.Dispose(); return ValueTask.CompletedTask; }
 
     record ConversationTurn(string Role, string Content, List<CitationDisplay> Citations);
     record CitationDisplay(string FileName, string Preview);
-    record DocumentSummary(string Id, string FileName, int ChunkCount, DateTime CreatedAt, string Status);
+    record DocumentSummary(string Id, string FileName, int ChunkCount,
+        DateTime CreatedAt, string Status);
     record HistoryMessage(string Role, string Content);
 }
