@@ -136,9 +136,6 @@ public class QueryService : IQueryService
         foreach (var (from, to) in replacements)
             text = text.Replace(from, to);
 
-        // Remove remaining { } braces from LaTeX
-        text = text.Replace("{", "").Replace("}", "");
-
         return text.Trim();
     }
 }
