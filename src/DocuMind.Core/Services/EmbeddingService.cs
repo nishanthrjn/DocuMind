@@ -15,23 +15,24 @@ public class EmbeddingService : IEmbeddingService
 
     public async Task<float[]> EmbedAsync(string text, CancellationToken ct)
     {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        cts.CancelAfter(TimeSpan.FromMinutes(10));
-        var result = await _embeddingGenerator.GenerateEmbeddingAsync(text, cancellationToken: cts.Token);
+        // Use independent token — not linked to request ct — so HttpClient timeout
+        // does not cancel the embedding call
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+        var result = await _embeddingGenerator.GenerateEmbeddingAsync(
+            text, cancellationToken: cts.Token);
         return result.ToArray();
     }
 
     public async Task<List<DocumentChunk>> EmbedChunksAsync(
         List<DocumentChunk> chunks, CancellationToken ct)
     {
-        const int batchSize = 20;
+        const int batchSize = 5;
         for (int i = 0; i < chunks.Count; i += batchSize)
         {
             var batch = chunks.Skip(i).Take(batchSize).ToList();
 
-            // Use a long timeout per batch — CPU embedding is slow for large PDFs
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            cts.CancelAfter(TimeSpan.FromMinutes(10));
+            // Independent timeout per batch — not linked to HTTP request
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 
             var embeddings = await _embeddingGenerator.GenerateEmbeddingsAsync(
                 batch.Select(c => c.Content).ToList(),
