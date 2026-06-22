@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using DocuMind.Domain.Interfaces;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -107,8 +108,54 @@ public class QueryService : IQueryService
         }
 
         return new QueryResult(
-            Answer:    response.Content ?? "",
+            Answer:    CleanLatex(response.Content ?? ""),
             Citations: citations,
             LatencyMs: sw.Elapsed.TotalMilliseconds);
+    }
+
+    private static string CleanLatex(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+
+        // Remove display math delimiters [ ... ] and ( ... )
+        text = Regex.Replace(text, @"\\\[|\\\]|\\\(|\\\)", "");
+
+        // Remove common LaTeX commands but keep content
+        text = Regex.Replace(text, @"\mathbf\{([^}]+)\}", "$1");
+        text = Regex.Replace(text, @"\mathbb\{([^}]+)\}", "$1");
+        text = Regex.Replace(text, @"\text\{([^}]+)\}", "$1");
+        text = Regex.Replace(text, @"\mathrm\{([^}]+)\}", "$1");
+        text = Regex.Replace(text, @"\operatorname\{([^}]+)\}", "$1");
+        text = Regex.Replace(text, @"\left|\right|\bigl|\bigr|\Bigl|\Bigr", "");
+        text = Regex.Replace(text, @"\approx", "≈");
+        text = Regex.Replace(text, @"\Delta", "Δ");
+        text = Regex.Replace(text, @"\lambda", "λ");
+        text = Regex.Replace(text, @"\alpha", "α");
+        text = Regex.Replace(text, @"\beta", "β");
+        text = Regex.Replace(text, @"\gamma", "γ");
+        text = Regex.Replace(text, @"\tau", "τ");
+        text = Regex.Replace(text, @"\sigma", "σ");
+        text = Regex.Replace(text, @"\exp", "exp");
+        text = Regex.Replace(text, @"\frac\{([^}]+)\}\{([^}]+)\}", "($1)/($2)");
+        text = Regex.Replace(text, @"\sqrt\{([^}]+)\}", "sqrt($1)");
+        text = Regex.Replace(text, @"\cdot", "·");
+        text = Regex.Replace(text, @"\times", "×");
+        text = Regex.Replace(text, @"\in", "∈");
+        text = Regex.Replace(text, @"\sum", "Σ");
+        text = Regex.Replace(text, @"\prod", "Π");
+        text = Regex.Replace(text, @"\infty", "∞");
+        text = Regex.Replace(text, @"\leq", "≤");
+        text = Regex.Replace(text, @"\geq", "≥");
+        text = Regex.Replace(text, @"\neq", "≠");
+        text = Regex.Replace(text, @"\int", "∫");
+
+        // Remove remaining backslash commands
+        text = Regex.Replace(text, @"\[a-zA-Z]+\{([^}]*)\}", "$1");
+        text = Regex.Replace(text, @"\[a-zA-Z]+", "");
+
+        // Clean up extra spaces
+        text = Regex.Replace(text, @"  +", " ");
+
+        return text.Trim();
     }
 }
