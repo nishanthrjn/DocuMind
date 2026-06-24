@@ -1,9 +1,10 @@
-using System.Text.RegularExpressions;
+using DocuMind.Domain.Entities;
 using DocuMind.Domain.Interfaces;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.SemanticKernel;
+using System.Text.RegularExpressions;
 
 namespace DocuMind.Core.Services;
 
@@ -134,9 +135,6 @@ public class QueryService : IQueryService
 
         foreach (var (from, to) in replacements)
             text = text.Replace(from, to);
-
-        // Remove remaining { } braces from LaTeX
-        text = text.Replace("{", "").Replace("}", "");
 
         return text.Trim();
     }
