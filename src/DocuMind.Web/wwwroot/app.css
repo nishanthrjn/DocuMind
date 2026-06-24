@@ -119,3 +119,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
 .dm-copy-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text2); cursor: pointer; font-size: 0.78rem; padding: 4px 10px; transition: all 0.2s; }
 .dm-copy-btn:hover { border-color: var(--accent2); color: var(--accent2); }
 .dm-msg-citations { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+
+.dm-msg-citations { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; max-width: 100%; }
+.dm-citation-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text2); font-size: 0.75rem; padding: 3px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
