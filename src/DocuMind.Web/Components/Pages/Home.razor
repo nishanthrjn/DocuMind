@@ -5,101 +5,191 @@
 
 <PageTitle>DocuMind</PageTitle>
 
-<div class="dm-app">
-    <div class="dm-header">
-        <div class="dm-logo">
-            <span class="logo-icon">📚</span>
-            <span class="logo-text">DocuMind</span>
+<div class="dm-layout">
+
+    <!-- Left Panel — Sources -->
+    <div class="dm-sidebar">
+        <div class="dm-sidebar-header">
+            <div class="dm-sidebar-title">📚 Sources</div>
+            <button class="dm-add-btn" @onclick='() => _showUpload = !_showUpload'>
+                @(_showUpload ? "✕" : "+ Add")
+            </button>
         </div>
-        <div class="dm-subtitle">AI Document Intelligence Platform</div>
+
+        <!-- Upload area (collapsible) -->
+        @if (_showUpload)
+        {
+            <div class="dm-upload-panel">
+                <div class="dm-upload-drop">
+                    <InputFile OnChange="OnFilesSelected" accept=".pdf,.txt"
+                               class="dm-file-input" multiple />
+                    <div class="dm-upload-hint">
+                        <span>📁</span>
+                        <span>PDF or TXT</span>
+                    </div>
+                </div>
+                @if (_selectedFiles.Any())
+                {
+                    @foreach (var f in _selectedFiles)
+                    {
+                        <div class="dm-upload-file">
+                            📄 @TruncateFilename(f.Name, 25)
+                        </div>
+                    }
+                    <button class="dm-upload-btn" @onclick="UploadDocuments"
+                            disabled="@_uploading">
+                        @if (_uploading)
+                        {
+                            <span class="spinner-sm"></span>
+                            <span>Ingesting...</span>
+                        }
+                        else
+                        {
+                            <span>⚡ Ingest @_selectedFiles.Count file(s)</span>
+                        }
+                    </button>
+                }
+                @if (!string.IsNullOrEmpty(_uploadMessage))
+                {
+                    <div class="dm-upload-msg @(_uploadSuccess ? "ok" : "err")">
+                        @_uploadMessage
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Document list -->
+        <div class="dm-source-list">
+            @if (_documents.Any())
+            {
+                @foreach (var doc in _documents)
+                {
+                    <div class="dm-source-item @(_selectedDoc?.Id == doc.Id ? "selected" : "")"
+                         @onclick="() => SelectDocument(doc)">
+                        <div class="dm-source-icon">
+                            @(doc.Status == "Failed" ? "❌" : "📄")
+                        </div>
+                        <div class="dm-source-info">
+                            <div class="dm-source-name" title="@doc.FileName">
+                                @TruncateFilename(doc.FileName, 22)
+                            </div>
+                            <div class="dm-source-meta">
+                                <span class="dm-status-dot dm-status-@doc.Status.ToLower()"></span>
+                                @doc.ChunkCount chunks
+                            </div>
+                        </div>
+                        <button class="dm-source-del"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => DeleteDocument(doc.Id)"
+                                title="Delete">×</button>
+                    </div>
+                }
+                <button class="dm-delete-all-btn" @onclick="DeleteAllDocuments">
+                    🗑️ Delete all
+                </button>
+            }
+            else
+            {
+                <div class="dm-source-empty">
+                    No sources yet.<br/>Click + Add to upload.
+                </div>
+            }
+        </div>
+
+        <!-- Selected document info -->
+        @if (_selectedDoc != null)
+        {
+            <div class="dm-source-detail">
+                <div class="dm-source-detail-title">📄 @TruncateFilename(_selectedDoc.FileName, 28)</div>
+                <div class="dm-source-detail-meta">
+                    @_selectedDoc.ChunkCount chunks · @_selectedDoc.CreatedAt.ToString("dd MMM yyyy")
+                </div>
+            </div>
+        }
     </div>
 
-    <div class="dm-tabs">
-        <button class="dm-tab @(_tab == "chat" ? "active" : "")"
-                @onclick='() => _tab = "chat"'>💬 Chat</button>
-        <button class="dm-tab @(_tab == "upload" ? "active" : "")"
-                @onclick='() => _tab = "upload"'>📤 Upload</button>
-        <button class="dm-tab @(_tab == "documents" ? "active" : "")"
-                @onclick='() => _tab = "documents"'>📄 Documents (@_documents.Count)</button>
-    </div>
-
-    @if (_tab == "chat")
-    {
-        <div class="dm-card">
+    <!-- Right Panel — Chat -->
+    <div class="dm-main">
+        <div class="dm-chat-header">
+            <div class="dm-chat-title">💬 Chat</div>
             @if (_conversation.Any())
             {
-                <div class="dm-conversation">
-                    @foreach (var msg in _conversation)
-                    {
-                        <div class="dm-msg dm-msg-@msg.Role">
-                            <div class="dm-msg-label">
-                                @(msg.Role == "user" ? "You" : "DocuMind")
-                            </div>
-                            <div class="dm-msg-body">
-                                @((MarkupString)RenderMarkdown(msg.Content))
-                            </div>
-                            @if (msg.Role == "assistant")
-                            {
-                                <div class="dm-msg-footer">
-                                    @if (msg.Citations.Any())
-                                    {
-                                        <div class="dm-msg-citations">
-                                            @foreach (var c in msg.Citations)
-                                            {
-                                                <div class="dm-citation-pill" title="@c.FileName">
-                                                    📄 @TruncateFilename(c.FileName)
-                                                </div>
-                                            }
-                                        </div>
-                                    }
-                                    <button class="dm-copy-btn"
-                                            @onclick="() => CopyToClipboard(msg.Content)"
-                                            title="Copy answer">
-                                        📋 Copy
-                                    </button>
-                                </div>
-                            }
+                <button class="dm-clear-btn" @onclick="ClearConversation">
+                    Clear
+                </button>
+            }
+        </div>
+
+        <div class="dm-chat-body">
+            @if (_conversation.Any())
+            {
+                @foreach (var msg in _conversation)
+                {
+                    <div class="dm-msg dm-msg-@msg.Role">
+                        <div class="dm-msg-label">
+                            @(msg.Role == "user" ? "You" : "DocuMind")
                         </div>
-                    }
-                    @if (_querying)
-                    {
-                        <div class="dm-msg dm-msg-assistant">
-                            <div class="dm-msg-label">DocuMind</div>
-                            <div class="dm-typing">
-                                <span></span><span></span><span></span>
-                            </div>
+                        <div class="dm-msg-body">
+                            @((MarkupString)RenderMarkdown(msg.Content))
                         </div>
-                    }
-                </div>
+                        @if (msg.Role == "assistant")
+                        {
+                            <div class="dm-msg-footer">
+                                @if (msg.Citations.Any())
+                                {
+                                    <div class="dm-msg-citations">
+                                        @foreach (var c in msg.Citations)
+                                        {
+                                            <div class="dm-citation-pill" title="@c.FileName">
+                                                📄 @TruncateFilename(c.FileName, 30)
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                <button class="dm-copy-btn"
+                                        @onclick="() => CopyToClipboard(msg.Content)">
+                                    📋 Copy
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (_querying)
+                {
+                    <div class="dm-msg dm-msg-assistant">
+                        <div class="dm-msg-label">DocuMind</div>
+                        <div class="dm-typing">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                }
             }
             else
             {
                 <div class="dm-empty-chat">
-                    <div class="dm-empty-icon">📚</div>
-                    <div class="dm-empty-title">Chat with your Documents</div>
+                    <div class="dm-empty-icon">💬</div>
+                    <div class="dm-empty-title">Ask about your documents</div>
                     <div class="dm-empty-subtitle">
-                        @_documents.Count document(s) ready · Ask anything
+                        @_documents.Count(d => d.Status == "Processed") document(s) ready
                     </div>
-                    @if (_documents.Any())
+                    @if (_documents.Any(d => d.Status == "Processed"))
                     {
                         <div class="dm-suggestions">
                             @foreach (var q in GetSuggestedQuestions())
                             {
-                                <button class="dm-suggestion-btn" @onclick="() => AskSuggestion(q)">
+                                <button class="dm-suggestion-btn"
+                                        @onclick="() => AskSuggestion(q)">
                                     @q
                                 </button>
                             }
                         </div>
                     }
-                    else
-                    {
-                        <div class="dm-empty-hint">
-                            Upload a document first, then start asking questions
-                        </div>
-                    }
                 </div>
             }
+        </div>
 
+        <!-- Input -->
+        <div class="dm-input-area">
             <div class="dm-input-row">
                 <textarea @bind="_question" @bind:event="oninput"
                           @onkeydown="HandleKeyDown"
@@ -112,122 +202,23 @@
                     else { <span>➤</span> }
                 </button>
             </div>
-            @if (_conversation.Any())
-            {
-                <button class="dm-btn-secondary" @onclick="ClearConversation">
-                    🗑️ Clear conversation
-                </button>
-            }
         </div>
-    }
-
-    @if (_tab == "upload")
-    {
-        <div class="dm-card">
-            <div class="dm-card-title">Upload Documents</div>
-            <div class="dm-upload-area">
-                <InputFile OnChange="OnFilesSelected" accept=".pdf,.txt"
-                           class="dm-file-input" multiple />
-                <div class="dm-upload-hint">
-                    <span class="dm-upload-icon">📁</span>
-                    <span>Click to select one or more PDF or TXT files</span>
-                </div>
-            </div>
-            @if (_selectedFiles.Any())
-            {
-                <div style="margin-bottom:12px;">
-                    @foreach (var f in _selectedFiles)
-                    {
-                        <div class="dm-file-info">
-                            <span>📄 @f.Name</span>
-                            <span class="dm-file-size">(@FormatSize(f.Size))</span>
-                        </div>
-                    }
-                </div>
-                <button class="dm-btn" @onclick="UploadDocuments" disabled="@_uploading">
-                    @if (_uploading)
-                    {
-                        <span class="spinner"></span>
-                        <span>Ingesting @_selectedFiles.Count file(s)...</span>
-                    }
-                    else
-                    {
-                        <span>⚡ Ingest @_selectedFiles.Count file(s)</span>
-                    }
-                </button>
-            }
-            @if (!string.IsNullOrEmpty(_uploadMessage))
-            {
-                <div class="dm-message @(_uploadSuccess ? "success" : "error")">
-                    @_uploadMessage
-                </div>
-            }
-        </div>
-    }
-
-    @if (_tab == "documents")
-    {
-        <div class="dm-card">
-            <div class="dm-card-title">Uploaded Documents</div>
-            @if (_documents.Any())
-            {
-                <div class="dm-doc-list">
-                    @foreach (var doc in _documents)
-                    {
-                        <div class="dm-doc-item">
-                            <div class="dm-doc-icon">
-                                @(doc.Status == "Failed" ? "❌" : "📄")
-                            </div>
-                            <div class="dm-doc-info">
-                                <div class="dm-doc-name">@doc.FileName</div>
-                                <div class="dm-doc-meta">
-                                    <span class="dm-status-@doc.Status.ToLower()">
-                                        @doc.Status
-                                    </span>
-                                    · @doc.ChunkCount chunks
-                                    · @doc.CreatedAt.ToString("dd MMM yyyy HH:mm")
-                                </div>
-                            </div>
-                            <button class="dm-btn-icon"
-                                    @onclick="() => DeleteDocument(doc.Id)"
-                                    title="Delete">🗑️</button>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="dm-empty">No documents uploaded yet.</div>
-            }
-            <div style="display:flex;gap:8px;margin-top:12px;">
-                <button class="dm-btn-secondary" @onclick="LoadDocuments">🔄 Refresh</button>
-                <button class="dm-btn-danger" @onclick="DeleteAllDocuments">🗑️ Delete All</button>
-            </div>
-            @if (!string.IsNullOrEmpty(_deleteMessage))
-            {
-                <div class="dm-message @(_deleteSuccess ? "success" : "error")"
-                     style="margin-top:12px">
-                    @_deleteMessage
-                </div>
-            }
-        </div>
-    }
+    </div>
 </div>
 
 @code {
-    private string _tab      = "chat";
-    private string _question = "";
+    private string _question  = "";
     private bool   _querying  = false;
     private bool   _uploading = false;
+    private bool   _showUpload = false;
 
     private string _uploadMessage = "";
     private bool   _uploadSuccess = false;
-    private string _deleteMessage = "";
-    private bool   _deleteSuccess = false;
 
     private List<IBrowserFile>     _selectedFiles = new();
     private List<DocumentSummary>  _documents     = new();
     private List<ConversationTurn> _conversation  = new();
+    private DocumentSummary?       _selectedDoc   = null;
 
     private HttpClient _http = new()
     {
@@ -240,26 +231,20 @@
         if (firstRender) await LoadDocuments();
     }
 
+    private void SelectDocument(DocumentSummary doc)
+    {
+        _selectedDoc = _selectedDoc?.Id == doc.Id ? null : doc;
+        StateHasChanged();
+    }
+
     private List<string> GetSuggestedQuestions()
     {
-        var docNames = _documents
-            .Where(d => d.Status == "Processed")
-            .Select(d => d.FileName)
-            .ToList();
-
-        if (!docNames.Any()) return new();
-
-        // Generate contextual suggestions based on document names
-        var suggestions = new List<string>
+        return new List<string>
         {
             "What are the main contributions of these papers?",
             "Summarize the key findings across all documents",
             "What methods or techniques are described?",
-            "What problems do these papers solve?",
-            "Compare the approaches across the documents"
         };
-
-        return suggestions.Take(3).ToList();
     }
 
     private async Task AskSuggestion(string question)
@@ -388,12 +373,12 @@
 
         _uploadSuccess = failed == 0;
         _uploadMessage = failed == 0
-            ? $"✅ {success} file(s) ingested successfully!"
-            : $"⚠️ {success} succeeded, {failed} failed.";
+            ? $"✅ {success} file(s) ingested!"
+            : $"⚠️ {success} ok, {failed} failed.";
 
         _selectedFiles = new();
         await LoadDocuments();
-        if (success > 0) _tab = "chat";
+        if (success > 0) _showUpload = false;
         _uploading = false;
         StateHasChanged();
     }
@@ -427,6 +412,7 @@
 
     private async Task DeleteDocument(string id)
     {
+        if (_selectedDoc?.Id == id) _selectedDoc = null;
         try
         {
             var r = await _http.DeleteAsync($"/api/documents/{id}");
@@ -437,29 +423,18 @@
 
     private async Task DeleteAllDocuments()
     {
-        _deleteMessage = "";
+        _selectedDoc  = null;
+        _conversation = new();
         try
         {
-            var response = await _http.DeleteAsync("/api/documents");
-            if (response.IsSuccessStatusCode)
+            var r = await _http.DeleteAsync("/api/documents");
+            if (r.IsSuccessStatusCode)
             {
-                _deleteSuccess = true;
-                _deleteMessage = "✅ All documents deleted.";
-                _documents     = new();
-                _conversation  = new();
-            }
-            else
-            {
-                _deleteSuccess = false;
-                _deleteMessage = $"❌ Delete failed: {response.StatusCode}";
+                _documents = new();
+                await InvokeAsync(StateHasChanged);
             }
         }
-        catch (Exception ex)
-        {
-            _deleteSuccess = false;
-            _deleteMessage = $"❌ Error: {ex.Message}";
-        }
-        StateHasChanged();
+        catch { }
     }
 
     private string RenderMarkdown(string md)
@@ -468,8 +443,8 @@
         catch { return md; }
     }
 
-    private string TruncateFilename(string name) =>
-        name.Length > 40 ? name[..37] + "..." : name;
+    private string TruncateFilename(string name, int max) =>
+        name.Length > max ? name[..max] + "..." : name;
 
     private string FormatSize(long bytes) =>
         bytes < 1024 * 1024
