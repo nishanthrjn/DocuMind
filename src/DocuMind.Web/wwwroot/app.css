@@ -282,6 +282,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); }
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-width: 0;
 }
 
 .dm-chat-header {
@@ -500,3 +501,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); }
 [data-theme="afternoon"] .dm-source-del {
     color: var(--text2);
 }
+
+.dm-suggestion-btn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dm-empty-chat { width: 100%; }
