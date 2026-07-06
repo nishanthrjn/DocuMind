@@ -12,6 +12,8 @@ public class DocuMindDbContext : DbContext
     public DbSet<Document>      Documents      { get; set; }
     public DbSet<DocumentChunk> DocumentChunks { get; set; }
     public DbSet<QueryRecord>   QueryRecords   { get; set; }
+    public DbSet<Conversation>        Conversations        { get; set; }
+    public DbSet<ConversationMessage> ConversationMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -76,6 +78,40 @@ public class DocuMindDbContext : DbContext
             b.Property(x => x.ChunksUsed).HasColumnName("chunks_used");
             b.Property(x => x.LatencyMs).HasColumnName("latency_ms");
             b.Property(x => x.AskedAt).HasColumnName("asked_at");
+        });
+
+        modelBuilder.Entity<Conversation>(b =>
+        {
+            b.ToTable("conversations");
+            b.HasKey(x => x.Id);
+            b.HasMany(x => x.Messages)
+             .WithOne(x => x.Conversation)
+             .HasForeignKey(x => x.ConversationId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ConversationMessage>(b =>
+        {
+            b.ToTable("conversation_messages");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.ConversationId);
+        });
+
+        modelBuilder.Entity<Conversation>(b =>
+        {
+            b.ToTable("conversations");
+            b.HasKey(x => x.Id);
+            b.HasMany(x => x.Messages)
+             .WithOne(x => x.Conversation)
+             .HasForeignKey(x => x.ConversationId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ConversationMessage>(b =>
+        {
+            b.ToTable("conversation_messages");
+            b.HasKey(x => x.Id);
+            b.HasIndex(x => x.ConversationId);
         });
 
         base.OnModelCreating(modelBuilder);
