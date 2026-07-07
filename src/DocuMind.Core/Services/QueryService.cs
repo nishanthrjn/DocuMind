@@ -54,7 +54,7 @@ public class QueryService : IQueryService
         {
             var doc = await _documentRepo.GetByIdAsync(chunk.DocumentId, ct);
             contextBuilder.AppendLine($"[Source: {doc?.FileName ?? "Unknown"}]");
-            contextBuilder.AppendLine(chunk.Content[..Math.Min(300, chunk.Content.Length)]);
+            contextBuilder.AppendLine(chunk.Content[..Math.Min(800, chunk.Content.Length)]);
             contextBuilder.AppendLine();
         }
 
