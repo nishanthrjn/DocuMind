@@ -177,7 +177,90 @@ app.MapPost("/api/query", async (
     });
 }).WithName("Query").WithTags("Query");
 
+// ── Conversation endpoints ────────────────────────────────────────────────────
+
+app.MapGet("/api/conversations", async (DocuMindDbContext db, CancellationToken ct) =>
+{
+    var convs = await db.Conversations
+        .OrderByDescending(c => c.UpdatedAt)
+        .Select(c => new { c.Id, c.Title, c.CreatedAt, c.UpdatedAt,
+            MessageCount = c.Messages.Count })
+        .ToListAsync(ct);
+    return Results.Ok(convs);
+}).WithName("GetConversations").WithTags("Conversations");
+
+app.MapGet("/api/conversations/{id:guid}", async (
+    Guid id, DocuMindDbContext db, CancellationToken ct) =>
+{
+    var conv = await db.Conversations
+        .Include(c => c.Messages.OrderBy(m => m.CreatedAt))
+        .FirstOrDefaultAsync(c => c.Id == id, ct);
+    if (conv is null) return Results.NotFound();
+    return Results.Ok(conv);
+}).WithName("GetConversation").WithTags("Conversations");
+
+app.MapPost("/api/conversations", async (
+    SaveConversationRequest request,
+    DocuMindDbContext db, CancellationToken ct) =>
+{
+    var conv = new DocuMind.Domain.Entities.Conversation
+    {
+        Id        = request.Id ?? Guid.NewGuid(),
+        Title     = request.Title,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    // Check if exists
+    var existing = await db.Conversations
+        .Include(c => c.Messages)
+        .FirstOrDefaultAsync(c => c.Id == conv.Id, ct);
+
+    if (existing != null)
+    {
+        existing.Title     = conv.Title;
+        existing.UpdatedAt = DateTime.UtcNow;
+        db.ConversationMessages.RemoveRange(existing.Messages);
+    }
+    else
+    {
+        db.Conversations.Add(conv);
+    }
+
+    var targetConv = existing ?? conv;
+
+    foreach (var msg in request.Messages)
+    {
+        db.ConversationMessages.Add(new DocuMind.Domain.Entities.ConversationMessage
+        {
+            ConversationId = targetConv.Id,
+            Role           = msg.Role,
+            Content        = msg.Content,
+            Citations      = msg.Citations
+        });
+    }
+
+    await db.SaveChangesAsync(ct);
+    return Results.Ok(new { Id = targetConv.Id });
+}).WithName("SaveConversation").WithTags("Conversations");
+
+app.MapDelete("/api/conversations/{id:guid}", async (
+    Guid id, DocuMindDbContext db, CancellationToken ct) =>
+{
+    var conv = await db.Conversations.FindAsync(new object[] { id }, ct);
+    if (conv is null) return Results.NotFound();
+    db.Conversations.Remove(conv);
+    await db.SaveChangesAsync(ct);
+    return Results.Ok();
+}).WithName("DeleteConversation").WithTags("Conversations");
+
 app.Run();
 
 public record QueryRequest(string Question, int TopK = 5, List<ConversationMessage>? History = null);
 public record ConversationMessage(string Role, string Content);
+
+public record SaveConversationRequest(
+    Guid?  Id,
+    string Title,
+    List<SaveMessageRequest> Messages);
+
+public record SaveMessageRequest(string Role, string Content, string Citations);
