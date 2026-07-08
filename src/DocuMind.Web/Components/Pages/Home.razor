@@ -156,6 +156,15 @@
                                     📋 Copy
                                 </button>
                             </div>
+                            @if (_conversation.Last() == msg && !_querying)
+                            {
+                                <div class="dm-followup">
+                                    @foreach (var q in GetFollowUpQuestions(msg.Content))
+                                    {
+                                        <button class="dm-followup-btn" @onclick="() => AskSuggestion(q)">@q</button>
+                                    }
+                                </div>
+                            }
                         }
                     </div>
                 }
@@ -247,6 +256,22 @@
         "Summarize the key findings across all documents",
         "What methods or techniques are described?"
     };
+
+    private List<string> GetFollowUpQuestions(string lastAnswer)
+    {
+        // Generate contextual follow-ups based on conversation
+        var followUps = new List<string>
+        {
+            "Can you explain this in simpler terms?",
+            "What are the limitations of these approaches?",
+            "How do these compare to each other?",
+            "What are the practical applications?",
+            "Can you give a concrete example?"
+        };
+        // Rotate based on conversation length to vary suggestions
+        var offset = _conversation.Count % followUps.Count;
+        return followUps.Skip(offset).Concat(followUps.Take(offset)).Take(3).ToList();
+    }
 
     private async Task AskSuggestion(string question)
     {
