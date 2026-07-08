@@ -299,7 +299,7 @@
         {
             var history = _conversation
                 .Take(_conversation.Count - 1)
-                .TakeLast(4)
+                .TakeLast(2)
                 .Select(t => new HistoryMessage(t.Role, t.Content))
                 .ToList();
 
