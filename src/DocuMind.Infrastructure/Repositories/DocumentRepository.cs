@@ -48,4 +48,13 @@ public class DocumentRepository : IDocumentRepository
         doc.ProcessedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
     }
+
+    public async Task UpdateSummaryAsync(Guid id, string summary, CancellationToken ct)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(ct);
+        var doc = await db.Documents.FindAsync(new object[] { id }, ct);
+        if (doc is null) return;
+        doc.Summary = summary;
+        await db.SaveChangesAsync(ct);
+    }
 }

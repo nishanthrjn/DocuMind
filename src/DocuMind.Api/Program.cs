@@ -98,7 +98,8 @@ app.MapGet("/api/documents", async (
     {
         d.Id, d.FileName, d.ContentType,
         d.Status, d.ChunkCount,
-        d.UploadedAt, d.ProcessedAt
+        d.UploadedAt, d.ProcessedAt,
+        d.Summary
     }));
 }).WithName("GetDocuments").WithTags("Documents");
 

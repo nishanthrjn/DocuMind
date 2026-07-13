@@ -8,4 +8,5 @@ public interface IDocumentRepository
     Task<Document?>      GetByIdAsync(Guid id, CancellationToken ct);
     Task<List<Document>> GetAllAsync(CancellationToken ct);
     Task                 UpdateStatusAsync(Guid id, string status, int chunkCount, CancellationToken ct);
+    Task                 UpdateSummaryAsync(Guid id, string summary, CancellationToken ct);
 }
