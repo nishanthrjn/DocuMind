@@ -524,3 +524,5 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); }
 .dm-followup { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .dm-followup-btn { background: transparent; border: 1px solid var(--border); border-radius: 99px; color: var(--text2); cursor: pointer; font-size: 0.75rem; padding: 4px 12px; transition: all 0.15s; }
 .dm-followup-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.06); }
+
+.dm-source-summary { font-size: 0.78rem; color: var(--text); line-height: 1.5; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }

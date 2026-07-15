@@ -1,4 +1,6 @@
 using DocuMind.Domain.Entities;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 using DocuMind.Domain.Enums;
 using DocuMind.Domain.Interfaces;
 using DocuMind.Core.Parsers;
@@ -14,6 +16,7 @@ public class IngestionService
     private readonly IDocumentRepository      _documentRepo;
     private readonly IChunkRepository         _chunkRepo;
     private readonly ILogger<IngestionService> _logger;
+    private readonly Kernel _kernel;
 
     public IngestionService(
         DocumentParserDispatcher  dispatcher,
@@ -21,7 +24,8 @@ public class IngestionService
         IEmbeddingService         embedder,
         IDocumentRepository       documentRepo,
         IChunkRepository          chunkRepo,
-        ILogger<IngestionService> logger)
+        ILogger<IngestionService> logger,
+        Kernel kernel)
     {
         _dispatcher   = dispatcher;
         _chunker      = chunker;
@@ -29,6 +33,7 @@ public class IngestionService
         _documentRepo = documentRepo;
         _chunkRepo    = chunkRepo;
         _logger       = logger;
+        _kernel       = kernel;
     }
 
     public async Task<Document> IngestAsync(
@@ -74,7 +79,27 @@ public class IngestionService
             // 5. Persist chunks with vectors to PostgreSQL pgvector
             await _chunkRepo.SaveChunksAsync(embeddedChunks, ct);
 
-            // 6. Mark document as processed
+            // 6. Generate summary using first 3 chunks
+            try
+            {
+                var sampleText = string.Join("\n\n",
+                    chunks.Take(3).Select(c => c.Content[..Math.Min(300, c.Content.Length)]));
+                var chat = _kernel.GetRequiredService<IChatCompletionService>();
+                var history = new ChatHistory();
+                history.AddSystemMessage("You are a document summarizer. Write a concise 2-3 sentence summary of the document based on the provided excerpts. Be specific about the topic and key contributions.");
+                history.AddUserMessage($"Summarize this document:\n{sampleText}");
+                using var sumCts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+                var summaryResponse = await chat.GetChatMessageContentAsync(history, cancellationToken: sumCts.Token);
+                var summary = summaryResponse.Content ?? "";
+                await _documentRepo.UpdateSummaryAsync(document.Id, summary, ct);
+                _logger.LogInformation("Summary generated for {FileName}", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Summary generation failed for {FileName}: {Error}", fileName, ex.Message);
+            }
+
+            // 7. Mark document as processed
             await _documentRepo.UpdateStatusAsync(
                 document.Id, DocumentStatus.Processed, chunks.Count, ct);
 
