@@ -231,7 +231,7 @@
 
     private HttpClient _http = new()
     {
-        BaseAddress = new Uri("http://localhost:5000"),
+        BaseAddress = new Uri("http://localhost:5082"),
         Timeout     = TimeSpan.FromMinutes(10)
     };
 
@@ -574,3 +574,4 @@
     record ConvSummary(Guid Id, string Title, DateTime UpdatedAt, int MessageCount);
     record HistoryMessage(string Role, string Content);
 }
+
