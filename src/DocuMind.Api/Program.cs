@@ -27,7 +27,7 @@ var groqApiKey        = builder.Configuration["Groq:ApiKey"]             ?? "";
 var groqChatModel     = builder.Configuration["Groq:ChatModel"]          ?? "llama-3.3-70b-versatile";
 
 builder.Services.AddDbContextFactory<DocuMindDbContext>(options =>
-    options.UseNpgsql(connectionString, o => o.UseVector()));
+    options.UseNpgsql(connectionString, o => o.UseVector()).ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
 #pragma warning disable SKEXP0070
 var kernelBuilder = Kernel.CreateBuilder();
@@ -197,7 +197,12 @@ app.MapGet("/api/conversations/{id:guid}", async (
         .Include(c => c.Messages.OrderBy(m => m.CreatedAt))
         .FirstOrDefaultAsync(c => c.Id == id, ct);
     if (conv is null) return Results.NotFound();
-    return Results.Ok(conv);
+    return Results.Ok(new {
+        conv.Id, conv.Title, conv.CreatedAt, conv.UpdatedAt,
+        Messages = conv.Messages.Select(m => new {
+            m.Id, m.Role, m.Content, m.Citations, m.CreatedAt
+        })
+    });
 }).WithName("GetConversation").WithTags("Conversations");
 
 app.MapPost("/api/conversations", async (
@@ -265,3 +270,9 @@ public record SaveConversationRequest(
     List<SaveMessageRequest> Messages);
 
 public record SaveMessageRequest(string Role, string Content, string Citations);
+
+
+
+
+
+
