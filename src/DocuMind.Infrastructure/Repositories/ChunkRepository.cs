@@ -23,14 +23,11 @@ public class ChunkRepository : IChunkRepository
     }
 
     public async Task<List<DocumentChunk>> SearchSimilarAsync(
-        float[] queryEmbedding, int topK, CancellationToken ct)
+        Pgvector.Vector queryEmbedding, int topK, CancellationToken ct)
     {
         await using var db = await _contextFactory.CreateDbContextAsync(ct);
+        var vector = queryEmbedding;
 
-        var vector = new Vector(queryEmbedding);
-
-        // FromSql with typed parameter — no SQL injection risk
-        // pgvector <=> operator = cosine distance, lower = more similar
         return await db.DocumentChunks
             .FromSql($"""
                 SELECT * FROM document_chunks
@@ -40,3 +37,5 @@ public class ChunkRepository : IChunkRepository
             .ToListAsync(ct);
     }
 }
+
+

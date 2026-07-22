@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
 using Pgvector.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using Npgsql;
+using Pgvector.Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,8 +28,12 @@ var ollamaChatModel   = builder.Configuration["Ollama:ChatModel"]      ?? "llama
 var groqApiKey        = builder.Configuration["Groq:ApiKey"]             ?? "";
 var groqChatModel     = builder.Configuration["Groq:ChatModel"]          ?? "llama-3.3-70b-versatile";
 
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.UseVector();
+var dataSource = dataSourceBuilder.Build();
+
 builder.Services.AddDbContextFactory<DocuMindDbContext>(options =>
-    options.UseNpgsql(connectionString, o => o.UseVector()).ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
+    options.UseNpgsql(dataSource, o => o.UseVector()).ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
 #pragma warning disable SKEXP0070
 var kernelBuilder = Kernel.CreateBuilder();
@@ -270,6 +276,11 @@ public record SaveConversationRequest(
     List<SaveMessageRequest> Messages);
 
 public record SaveMessageRequest(string Role, string Content, string Citations);
+
+
+
+
+
 
 
 
