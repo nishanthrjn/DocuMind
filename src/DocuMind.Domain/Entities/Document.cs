@@ -11,7 +11,7 @@ public class Document
     public string   Status        { get; set; } = "Pending";
     public int      ChunkCount    { get; set; }
     public string Metadata { get; set; } = "{}";
-    public string? Summary { get; set; }
     public List<DocumentChunk> Chunks { get; set; } = new();
 }
+
 

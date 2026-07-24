@@ -10,9 +10,7 @@ public class DocumentRepository : IDocumentRepository
     private readonly IDbContextFactory<DocuMindDbContext> _contextFactory;
 
     public DocumentRepository(IDbContextFactory<DocuMindDbContext> contextFactory)
-    {
-        _contextFactory = contextFactory;
-    }
+        => _contextFactory = contextFactory;
 
     public async Task<Document> SaveAsync(Document document, CancellationToken ct)
     {
@@ -46,15 +44,6 @@ public class DocumentRepository : IDocumentRepository
         doc.Status      = status;
         doc.ChunkCount  = chunkCount;
         doc.ProcessedAt = DateTime.UtcNow;
-        await db.SaveChangesAsync(ct);
-    }
-
-    public async Task UpdateSummaryAsync(Guid id, string summary, CancellationToken ct)
-    {
-        await using var db = await _contextFactory.CreateDbContextAsync(ct);
-        var doc = await db.Documents.FindAsync(new object[] { id }, ct);
-        if (doc is null) return;
-        doc.Summary = summary;
         await db.SaveChangesAsync(ct);
     }
 }

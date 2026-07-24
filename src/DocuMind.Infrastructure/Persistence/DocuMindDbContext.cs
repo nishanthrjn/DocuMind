@@ -29,7 +29,6 @@ public class DocuMindDbContext : DbContext
             b.Property(x => x.Status).HasColumnName("status");
             b.Property(x => x.ChunkCount).HasColumnName("chunk_count");
             b.Property(x => x.Metadata).HasColumnName("metadata").HasColumnType("text");
-            b.Property(x => x.Summary).HasColumnName("summary");
         });
 
         modelBuilder.Entity<DocumentChunk>(b =>
@@ -72,3 +71,4 @@ public class DocuMindDbContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 }
+

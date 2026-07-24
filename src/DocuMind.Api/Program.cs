@@ -104,8 +104,7 @@ app.MapGet("/api/documents", async (
     {
         d.Id, d.FileName, d.ContentType,
         d.Status, d.ChunkCount,
-        d.UploadedAt, d.ProcessedAt,
-        d.Summary
+        d.UploadedAt, d.ProcessedAt
     }));
 }).WithName("GetDocuments").WithTags("Documents");
 
@@ -276,6 +275,7 @@ public record SaveConversationRequest(
     List<SaveMessageRequest> Messages);
 
 public record SaveMessageRequest(string Role, string Content, string Citations);
+
 
 
 
