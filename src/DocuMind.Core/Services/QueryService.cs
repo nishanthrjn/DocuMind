@@ -98,7 +98,7 @@ public class QueryService : IQueryService
             citations.Add(new Citation(
                 FileName:     doc?.FileName ?? "Unknown",
                 PageNumber:   chunk.PageNumber,
-                ChunkPreview: chunk.Content[..Math.Min(150, chunk.Content.Length)] + "..."));
+                ChunkPreview: chunk.Content[..Math.Min(600, chunk.Content.Length)] + "..."));
         }
 
         var answer = CleanLatex(response.Content ?? "");
@@ -139,4 +139,5 @@ public class QueryService : IQueryService
         return text.Trim();
     }
 }
+
 

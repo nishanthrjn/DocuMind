@@ -146,9 +146,11 @@
                                     <div class="dm-msg-citations">
                                         @foreach (var c in msg.Citations)
                                         {
-                                            <div class="dm-citation-pill" title="@c.FileName">
-                                                📄 @TruncateFilename(c.FileName, 30)
-                                            </div>
+                                            <div class="dm-citation-pill @(_activeCitation == c ? "active" : "")"
+                                                    title="@c.FileName"
+                                                    @onclick="() => _activeCitation = _activeCitation == c ? null : c">
+                                                    📄 @TruncateFilename(c.FileName, 30)
+                                                </div>
                                         }
                                     </div>
                                 }
@@ -228,6 +230,7 @@
     private List<ConversationTurn>    _conversation        = new();
     private List<ConvSummary>         _savedConversations  = new();
     private DocumentSummary?          _selectedDoc         = null;
+    private CitationDisplay?          _activeCitation      = null;
 
     private HttpClient _http = new()
     {
@@ -569,10 +572,15 @@
 
     record ConversationTurn(string Role, string Content, List<CitationDisplay> Citations);
     record CitationDisplay(string FileName, string Preview);
+    record CitationPopup(string FileName, string Content);
     record DocumentSummary(string Id, string FileName, int ChunkCount, DateTime CreatedAt, string Status);
     record ConvSummary(Guid Id, string Title, DateTime UpdatedAt, int MessageCount);
     record HistoryMessage(string Role, string Content);
 }
+
+
+
+
 
 
 
