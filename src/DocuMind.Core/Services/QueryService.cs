@@ -139,3 +139,4 @@ public class QueryService : IQueryService
         return text.Trim();
     }
 }
+
