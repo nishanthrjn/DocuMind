@@ -1,9 +1,9 @@
 using DocuMind.Domain.Entities;
 using DocuMind.Domain.Interfaces;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.SemanticKernel;
 using System.Text.RegularExpressions;
 
 namespace DocuMind.Core.Services;
@@ -46,14 +46,16 @@ public class QueryService : IQueryService
                 LatencyMs: sw.Elapsed.TotalMilliseconds);
         }
 
+        // Build numbered context
         var contextBuilder = new StringBuilder();
-        contextBuilder.AppendLine("Use the following document excerpts to answer the question.");
-        contextBuilder.AppendLine();
+        var chunkDocs      = new List<(DocumentChunk Chunk, Document? Doc)>();
 
-        foreach (var chunk in relevantChunks)
+        for (int i = 0; i < relevantChunks.Count; i++)
         {
-            var doc = await _documentRepo.GetByIdAsync(chunk.DocumentId, ct);
-            contextBuilder.AppendLine($"[Source: {doc?.FileName ?? "Unknown"}]");
+            var chunk = relevantChunks[i];
+            var doc   = await _documentRepo.GetByIdAsync(chunk.DocumentId, ct);
+            chunkDocs.Add((chunk, doc));
+            contextBuilder.AppendLine($"[{i + 1}] Source: {doc?.FileName ?? "Unknown"}");
             contextBuilder.AppendLine(chunk.Content[..Math.Min(800, chunk.Content.Length)]);
             contextBuilder.AppendLine();
         }
@@ -64,11 +66,11 @@ public class QueryService : IQueryService
 
             FORMATTING RULES:
             - Write all mathematical formulas in plain text only. Never use LaTeX, backslash commands, or dollar signs.
-            - Example: write "h_t = exp(delta*A) * h_(t-1)" not backslash commands
             - Use **bold** for key terms and concepts
             - Use bullet points for lists of findings
             - Keep answers concise and well-structured
-            - Always cite the source document at the end
+            - IMPORTANT: Cite sources inline using [1], [2], [3] etc. matching the source numbers below.
+            - Example: "The Transformer uses attention mechanisms [1] which allow parallel processing [2]."
             - If the answer is not in the documents, say so clearly
 
             Document context:
@@ -91,17 +93,14 @@ public class QueryService : IQueryService
 
         sw.Stop();
 
-        var citations = new List<Citation>();
-        foreach (var chunk in relevantChunks)
-        {
-            var doc = await _documentRepo.GetByIdAsync(chunk.DocumentId, ct);
-            citations.Add(new Citation(
-                FileName:     doc?.FileName ?? "Unknown",
-                PageNumber:   chunk.PageNumber,
-                ChunkPreview: chunk.Content[..Math.Min(600, chunk.Content.Length)] + "..."));
-        }
-
         var answer = CleanLatex(response.Content ?? "");
+
+        // Build citations from chunks
+        var citations = chunkDocs.Select((cd, i) => new Citation(
+            FileName:     cd.Doc?.FileName ?? "Unknown",
+            PageNumber:   cd.Chunk.PageNumber,
+            ChunkPreview: cd.Chunk.Content[..Math.Min(600, cd.Chunk.Content.Length)] + "..."
+        )).ToList();
 
         return new QueryResult(
             Answer:    answer,
@@ -113,7 +112,6 @@ public class QueryService : IQueryService
     {
         if (string.IsNullOrEmpty(text)) return text;
 
-        // Simple string replacements — no regex needed for LaTeX commands
         var replacements = new (string From, string To)[]
         {
             (@"\approx",  "≈"),  (@"\Delta",  "Δ"),  (@"\delta",  "δ"),
@@ -139,5 +137,3 @@ public class QueryService : IQueryService
         return text.Trim();
     }
 }
-
-
