@@ -534,8 +534,7 @@
                         d.TryGetProperty("createdAt",  out var ca)
                             ? DateTime.TryParse(ca.GetString(), out var dt) ? dt : DateTime.Now
                             : DateTime.Now,
-                        d.TryGetProperty("status",     out var st) ? st.GetString() ?? "" : "",
-                        d.TryGetProperty("summary",    out var sm) ? sm.GetString() : null));
+                        d.TryGetProperty("status",     out var st) ? st.GetString() ?? "" : ""));
                 }
                 await InvokeAsync(StateHasChanged);
             }
@@ -570,8 +569,12 @@
 
     record ConversationTurn(string Role, string Content, List<CitationDisplay> Citations);
     record CitationDisplay(string FileName, string Preview);
-    record DocumentSummary(string Id, string FileName, int ChunkCount, DateTime CreatedAt, string Status, string? Summary);
+    record DocumentSummary(string Id, string FileName, int ChunkCount, DateTime CreatedAt, string Status);
     record ConvSummary(Guid Id, string Title, DateTime UpdatedAt, int MessageCount);
     record HistoryMessage(string Role, string Content);
 }
+
+
+
+
 
