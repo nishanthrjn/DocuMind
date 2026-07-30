@@ -526,3 +526,9 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); }
 .dm-followup-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.06); }
 
 .dm-source-summary { font-size: 0.78rem; color: var(--text); line-height: 1.5; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+
+.dm-citation-pill.active { border-color: var(--accent); color: var(--accent); }
+.dm-citation-popup { background: var(--surface); border: 1px solid var(--accent); border-radius: 8px; margin-top: 10px; overflow: hidden; }
+.dm-citation-popup-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(79,142,247,0.1); font-size: 0.78rem; font-weight: 600; color: var(--accent); }
+.dm-citation-popup-header button { background: transparent; border: none; color: var(--text2); cursor: pointer; font-size: 0.9rem; }
+.dm-citation-popup-body { padding: 12px; font-size: 0.82rem; color: var(--text); line-height: 1.6; white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
