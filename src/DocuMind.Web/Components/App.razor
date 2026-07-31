@@ -13,6 +13,14 @@
     <Routes />
     <script src="_framework/blazor.web.js"></script>
     <script>
+        window.downloadFile = function(filename, mimeType, base64) {
+            var link = document.createElement("a");
+            link.href = "data:" + mimeType + ";base64," + base64;
+            link.download = filename;
+            link.click();
+        };
+    </script>
+    <script>
         function applyTimeTheme() {
             var hour = new Date().getHours();
             var theme;
@@ -28,3 +36,4 @@
     </script>
 </body>
 </html>
+
