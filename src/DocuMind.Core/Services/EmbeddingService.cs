@@ -13,14 +13,11 @@ public class EmbeddingService : IEmbeddingService
         _embeddingGenerator = embeddingGenerator;
     }
 
-    public async Task<Pgvector.Vector> EmbedAsync(string text, CancellationToken ct)
+    public async Task<float[]> EmbedAsync(string text, CancellationToken ct)
     {
-        // Use independent token — not linked to request ct — so HttpClient timeout
-        // does not cancel the embedding call
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
-        var result = await _embeddingGenerator.GenerateEmbeddingAsync(
-            text, cancellationToken: cts.Token);
-        return new Pgvector.Vector(result.ToArray());
+        var result = await _embeddingGenerator.GenerateEmbeddingAsync(text, cancellationToken: cts.Token);
+        return result.ToArray();
     }
 
     public async Task<List<DocumentChunk>> EmbedChunksAsync(
@@ -30,20 +27,13 @@ public class EmbeddingService : IEmbeddingService
         for (int i = 0; i < chunks.Count; i += batchSize)
         {
             var batch = chunks.Skip(i).Take(batchSize).ToList();
-
-            // Independent timeout per batch — not linked to HTTP request
             using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
-
             var embeddings = await _embeddingGenerator.GenerateEmbeddingsAsync(
                 batch.Select(c => c.Content).ToList(),
                 cancellationToken: cts.Token);
-
             for (int j = 0; j < batch.Count; j++)
-                batch[j].Embedding = new Pgvector.Vector(embeddings[j].ToArray());
+                batch[j].Embedding = embeddings[j].ToArray();
         }
         return chunks;
     }
 }
-
-
-

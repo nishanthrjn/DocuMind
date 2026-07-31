@@ -1,6 +1,26 @@
 @DocuMind.Api_HostAddress = http://localhost:5082
 
-GET {{DocuMind.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Health check
+GET {{DocuMind.Api_HostAddress}}/health
 
-###
+### List all documents
+GET {{DocuMind.Api_HostAddress}}/api/documents
+
+### Ingest a document
+POST {{DocuMind.Api_HostAddress}}/api/documents/ingest
+Content-Type: multipart/form-data; boundary=boundary
+
+### Query documents
+POST {{DocuMind.Api_HostAddress}}/api/query
+Content-Type: application/json
+
+{
+  "question": "What is the main contribution of this paper?",
+  "topK": 5
+}
+
+### List conversations
+GET {{DocuMind.Api_HostAddress}}/api/conversations
+
+### Delete all documents
+DELETE {{DocuMind.Api_HostAddress}}/api/documents

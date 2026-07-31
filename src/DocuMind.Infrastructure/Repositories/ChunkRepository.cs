@@ -23,10 +23,10 @@ public class ChunkRepository : IChunkRepository
     }
 
     public async Task<List<DocumentChunk>> SearchSimilarAsync(
-        Pgvector.Vector queryEmbedding, int topK, CancellationToken ct)
+        float[] queryEmbedding, int topK, CancellationToken ct)
     {
         await using var db = await _contextFactory.CreateDbContextAsync(ct);
-        var vector = queryEmbedding;
+        var vector = new Vector(queryEmbedding);
 
         return await db.DocumentChunks
             .FromSql($"""
@@ -37,5 +37,4 @@ public class ChunkRepository : IChunkRepository
             .ToListAsync(ct);
     }
 }
-
 
