@@ -7,7 +7,7 @@
 
 <div class="dm-layout">
 
-    <!-- Left Panel — Sources + Conversations -->
+    <!-- Left Panel -->
     <div class="dm-sidebar">
         <div class="dm-sidebar-header">
             <div class="dm-sidebar-title">📚 Sources</div>
@@ -20,12 +20,8 @@
         {
             <div class="dm-upload-panel">
                 <div class="dm-upload-drop">
-                    <InputFile OnChange="OnFilesSelected" accept=".pdf,.txt"
-                               class="dm-file-input" multiple />
-                    <div class="dm-upload-hint">
-                        <span>📁</span>
-                        <span>PDF or TXT</span>
-                    </div>
+                    <InputFile OnChange="OnFilesSelected" accept=".pdf,.txt" class="dm-file-input" multiple />
+                    <div class="dm-upload-hint"><span>📁</span><span>PDF or TXT</span></div>
                 </div>
                 @if (_selectedFiles.Any())
                 {
@@ -34,7 +30,7 @@
                         <div class="dm-upload-file">📄 @TruncateFilename(f.Name, 25)</div>
                     }
                     <button class="dm-upload-btn" @onclick="UploadDocuments" disabled="@_uploading">
-                        @if (_uploading) { <span class="spinner-sm"></span> <span>Ingesting...</span> }
+                        @if (_uploading) { <span class="spinner-sm"></span><span>Ingesting...</span> }
                         else { <span>⚡ Ingest @_selectedFiles.Count file(s)</span> }
                     </button>
                 }
@@ -50,21 +46,16 @@
             {
                 @foreach (var doc in _documents)
                 {
-                    <div class="dm-source-item @(_selectedDoc?.Id == doc.Id ? "selected" : "")"
-                         @onclick="() => SelectDocument(doc)">
+                    <div class="dm-source-item" @onclick="() => SelectDocument(doc)">
                         <div class="dm-source-icon">@(doc.Status == "Failed" ? "❌" : "📄")</div>
                         <div class="dm-source-info">
-                            <div class="dm-source-name" title="@doc.FileName">
-                                @TruncateFilename(doc.FileName, 22)
-                            </div>
+                            <div class="dm-source-name" title="@doc.FileName">@TruncateFilename(doc.FileName, 22)</div>
                             <div class="dm-source-meta">
                                 <span class="dm-status-dot dm-status-@doc.Status.ToLower()"></span>
                                 @doc.ChunkCount chunks
                             </div>
                         </div>
-                        <button class="dm-source-del"
-                                @onclick:stopPropagation="true"
-                                @onclick="() => DeleteDocument(doc.Id)">×</button>
+                        <button class="dm-source-del" @onclick:stopPropagation="true" @onclick="() => DeleteDocument(doc.Id)">×</button>
                     </div>
                 }
                 <button class="dm-delete-all-btn" @onclick="DeleteAllDocuments">🗑️ Delete all sources</button>
@@ -75,7 +66,6 @@
             }
         </div>
 
-        <!-- Saved Conversations -->
         <div class="dm-conv-section">
             <div class="dm-conv-header">
                 <span>💬 Chats</span>
@@ -93,8 +83,7 @@
                              @onclick="() => LoadConversation(conv.Id)">
                             <div class="dm-conv-title">@conv.Title</div>
                             <div class="dm-conv-meta">@conv.UpdatedAt.ToString("dd MMM HH:mm")</div>
-                            <button class="dm-source-del"
-                                    @onclick:stopPropagation="true"
+                            <button class="dm-source-del" @onclick:stopPropagation="true"
                                     @onclick="() => DeleteConversation(conv.Id)">×</button>
                         </div>
                     }
@@ -107,18 +96,12 @@
         </div>
     </div>
 
-    <!-- Right Panel — Chat -->
+    <!-- Right Panel -->
     <div class="dm-main">
         <div class="dm-chat-header">
             <div class="dm-chat-title">
-                @if (!string.IsNullOrEmpty(_currentConvTitle))
-                {
-                    <span>💬 @_currentConvTitle</span>
-                }
-                else
-                {
-                    <span>💬 Chat</span>
-                }
+                @if (!string.IsNullOrEmpty(_currentConvTitle)) { <span>💬 @_currentConvTitle</span> }
+                else { <span>💬 Chat</span> }
             </div>
             <div style="display:flex;gap:8px;">
                 @if (_conversation.Any())
@@ -138,26 +121,38 @@
                     <div class="dm-msg dm-msg-@msg.Role">
                         <div class="dm-msg-label">@(msg.Role == "user" ? "You" : "DocuMind")</div>
                         <div class="dm-msg-body">@((MarkupString)RenderMarkdown(msg.Content))</div>
+
                         @if (msg.Role == "assistant")
                         {
                             <div class="dm-msg-footer">
                                 @if (msg.Citations.Any())
                                 {
                                     <div class="dm-msg-citations">
-                                        @foreach (var c in msg.Citations)
+                                        @for (int i = 0; i < msg.Citations.Count; i++)
                                         {
-                                            <div class="dm-citation-pill @(_activeCitation == c ? "active" : "")"
-                                                    title="@c.FileName"
-                                                    @onclick="() => _activeCitation = _activeCitation == c ? null : c">
-                                                    📄 @TruncateFilename(c.FileName, 30)
-                                                </div>
+                                            var citation = msg.Citations[i];
+                                            var num = i + 1;
+                                            <span class="dm-cite-pill @(_activeCitation == citation ? "active" : "")"
+                                                  @onclick="() => { _activeCitation = _activeCitation == citation ? null : citation; StateHasChanged(); }">
+                                                [@num] @TruncateFilename(citation.FileName, 18)
+                                            </span>
                                         }
                                     </div>
                                 }
-                                <button class="dm-copy-btn" @onclick="() => CopyToClipboard(msg.Content)">
-                                    📋 Copy
-                                </button>
+                                <button class="dm-copy-btn" @onclick="() => CopyToClipboard(msg.Content)">📋 Copy</button>
                             </div>
+
+                            @if (_activeCitation != null && msg.Citations.Contains(_activeCitation))
+                            {
+                                <div class="dm-citation-popup">
+                                    <div class="dm-citation-popup-header">
+                                        <span>📄 @TruncateFilename(_activeCitation.FileName, 40)</span>
+                                        <button @onclick="() => { _activeCitation = null; StateHasChanged(); }">✕</button>
+                                    </div>
+                                    <div class="dm-citation-popup-body">@_activeCitation.Preview</div>
+                                </div>
+                            }
+
                             @if (_conversation.Last() == msg && !_querying)
                             {
                                 <div class="dm-followup">
@@ -183,9 +178,7 @@
                 <div class="dm-empty-chat">
                     <div class="dm-empty-icon">💬</div>
                     <div class="dm-empty-title">Ask about your documents</div>
-                    <div class="dm-empty-subtitle">
-                        @_documents.Count(d => d.Status == "Processed") document(s) ready
-                    </div>
+                    <div class="dm-empty-subtitle">@_documents.Count(d => d.Status == "Processed") document(s) ready</div>
                     @if (_documents.Any(d => d.Status == "Processed"))
                     {
                         <div class="dm-suggestions">
@@ -225,12 +218,12 @@
     private string _currentConvTitle = "";
     private Guid?  _currentConvId    = null;
 
-    private List<IBrowserFile>        _selectedFiles       = new();
-    private List<DocumentSummary>     _documents           = new();
-    private List<ConversationTurn>    _conversation        = new();
-    private List<ConvSummary>         _savedConversations  = new();
-    private DocumentSummary?          _selectedDoc         = null;
-    private CitationDisplay?          _activeCitation      = null;
+    private List<IBrowserFile>        _selectedFiles      = new();
+    private List<DocumentSummary>     _documents          = new();
+    private List<ConversationTurn>    _conversation       = new();
+    private List<ConvSummary>         _savedConversations = new();
+    private DocumentSummary?          _selectedDoc        = null;
+    private CitationDisplay?          _activeCitation     = null;
 
     private HttpClient _http = new()
     {
@@ -262,7 +255,6 @@
 
     private List<string> GetFollowUpQuestions(string lastAnswer)
     {
-        // Generate contextual follow-ups based on conversation
         var followUps = new List<string>
         {
             "Can you explain this in simpler terms?",
@@ -271,7 +263,6 @@
             "What are the practical applications?",
             "Can you give a concrete example?"
         };
-        // Rotate based on conversation length to vary suggestions
         var offset = _conversation.Count % followUps.Count;
         return followUps.Skip(offset).Concat(followUps.Take(offset)).Take(3).ToList();
     }
@@ -293,8 +284,10 @@
         if (string.IsNullOrWhiteSpace(_question) || _querying) return;
 
         var userQuestion = _question.Trim();
-        _question = "";
-        _querying = true;
+        _question       = "";
+        _querying       = true;
+        _activeCitation = null;
+
         _conversation.Add(new ConversationTurn("user", userQuestion, new()));
         StateHasChanged();
 
@@ -306,16 +299,15 @@
                 .Select(t => new HistoryMessage(t.Role, t.Content))
                 .ToList();
 
-            var payload  = System.Text.Json.JsonSerializer.Serialize(
-                new { question = userQuestion, topK = 5, history });
+            var payload  = System.Text.Json.JsonSerializer.Serialize(new { question = userQuestion, topK = 5, history });
             var content  = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
             var response = await _http.PostAsync("/api/query", content);
 
             if (response.IsSuccessStatusCode)
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var doc  = System.Text.Json.JsonDocument.Parse(json);
-                var answer = doc.RootElement.TryGetProperty("answer", out var a) ? a.GetString() ?? "" : "";
+                var json    = await response.Content.ReadAsStringAsync();
+                var doc     = System.Text.Json.JsonDocument.Parse(json);
+                var answer  = doc.RootElement.TryGetProperty("answer", out var a) ? a.GetString() ?? "" : "";
 
                 var citations     = new List<CitationDisplay>();
                 var seenCitations = new HashSet<string>();
@@ -334,8 +326,7 @@
             }
             else
             {
-                _conversation.Add(new ConversationTurn("assistant",
-                    $"Query failed: {response.StatusCode}", new()));
+                _conversation.Add(new ConversationTurn("assistant", $"Query failed: {response.StatusCode}", new()));
             }
         }
         catch (Exception ex)
@@ -351,14 +342,11 @@
     {
         if (!_conversation.Any()) return;
 
-        var title = _currentConvTitle;
-        if (string.IsNullOrEmpty(title))
+        if (string.IsNullOrEmpty(_currentConvTitle))
         {
             var firstMsg = _conversation.FirstOrDefault(m => m.Role == "user");
-            title = firstMsg?.Content.Length > 40
-                ? firstMsg.Content[..40] + "..."
-                : firstMsg?.Content ?? "Conversation";
-            _currentConvTitle = title;
+            _currentConvTitle = firstMsg?.Content.Length > 40
+                ? firstMsg.Content[..40] + "..." : firstMsg?.Content ?? "Conversation";
         }
 
         var id = _currentConvId ?? Guid.NewGuid();
@@ -366,13 +354,13 @@
 
         var messages = _conversation.Select(m => new
         {
-            role     = m.Role,
-            content  = m.Content,
+            role      = m.Role,
+            content   = m.Content,
             citations = System.Text.Json.JsonSerializer.Serialize(m.Citations)
         }).ToList();
 
-        var payload  = System.Text.Json.JsonSerializer.Serialize(new { id, title, messages });
-        var content  = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
+        var payload = System.Text.Json.JsonSerializer.Serialize(new { id, title = _currentConvTitle, messages });
+        var content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
         await _http.PostAsync("/api/conversations", content);
         await LoadConversationList();
         StateHasChanged();
@@ -414,10 +402,10 @@
             var doc  = System.Text.Json.JsonDocument.Parse(json);
 
             _currentConvId    = id;
-            _currentConvTitle = doc.RootElement.TryGetProperty("title", out var t)
-                ? t.GetString() ?? "" : "";
+            _currentConvTitle = doc.RootElement.TryGetProperty("title", out var t) ? t.GetString() ?? "" : "";
+            _activeCitation   = null;
+            _conversation     = new();
 
-            _conversation = new();
             if (doc.RootElement.TryGetProperty("messages", out var msgs))
             {
                 foreach (var m in msgs.EnumerateArray())
@@ -442,7 +430,6 @@
                     _conversation.Add(new ConversationTurn(role, content, citations));
                 }
             }
-
             await InvokeAsync(StateHasChanged);
         }
         catch { }
@@ -460,12 +447,14 @@
         _conversation     = new();
         _currentConvId    = null;
         _currentConvTitle = "";
+        _activeCitation   = null;
         StateHasChanged();
     }
 
     private void ClearConversation()
     {
-        _conversation = new();
+        _conversation   = new();
+        _activeCitation = null;
         StateHasChanged();
     }
 
@@ -507,10 +496,7 @@
         }
 
         _uploadSuccess = failed == 0;
-        _uploadMessage = failed == 0
-            ? $"✅ {success} file(s) ingested!"
-            : $"⚠️ {success} ok, {failed} failed.";
-
+        _uploadMessage = failed == 0 ? $"✅ {success} file(s) ingested!" : $"⚠️ {success} ok, {failed} failed.";
         _selectedFiles = new();
         await LoadDocuments();
         if (success > 0) _showUpload = false;
@@ -535,8 +521,7 @@
                         d.TryGetProperty("fileName",   out var fn) ? fn.GetString() ?? "" : "",
                         d.TryGetProperty("chunkCount", out var cc) ? cc.GetInt32() : 0,
                         d.TryGetProperty("createdAt",  out var ca)
-                            ? DateTime.TryParse(ca.GetString(), out var dt) ? dt : DateTime.Now
-                            : DateTime.Now,
+                            ? DateTime.TryParse(ca.GetString(), out var dt) ? dt : DateTime.Now : DateTime.Now,
                         d.TryGetProperty("status",     out var st) ? st.GetString() ?? "" : ""));
                 }
                 await InvokeAsync(StateHasChanged);
@@ -554,7 +539,7 @@
 
     private async Task DeleteAllDocuments()
     {
-        _selectedDoc = null; _conversation = new();
+        _selectedDoc = null; _conversation = new(); _activeCitation = null;
         try { var r = await _http.DeleteAsync("/api/documents"); if (r.IsSuccessStatusCode) { _documents = new(); await InvokeAsync(StateHasChanged); } }
         catch { }
     }
@@ -572,17 +557,7 @@
 
     record ConversationTurn(string Role, string Content, List<CitationDisplay> Citations);
     record CitationDisplay(string FileName, string Preview);
-    record CitationPopup(string FileName, string Content);
     record DocumentSummary(string Id, string FileName, int ChunkCount, DateTime CreatedAt, string Status);
     record ConvSummary(Guid Id, string Title, DateTime UpdatedAt, int MessageCount);
     record HistoryMessage(string Role, string Content);
 }
-
-
-
-
-
-
-
-
-
