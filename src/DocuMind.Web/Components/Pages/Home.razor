@@ -428,7 +428,11 @@
                     }
                     catch { }
 
-                    _conversation.Add(new ConversationTurn(role, content, citations));
+                    // Clean old [Source: filename] format from saved messages
+                    var cleanContent = System.Text.RegularExpressions.Regex.Replace(content, @"\[Source:[^\]]+\]", "");
+                    cleanContent = System.Text.RegularExpressions.Regex.Replace(cleanContent, @"\(Source:[^\)]+\)", "");
+                    cleanContent = System.Text.RegularExpressions.Regex.Replace(cleanContent, @"(?ms)^Sources\s*\r?\n.*", "").Trim();
+                    _conversation.Add(new ConversationTurn(role, cleanContent, citations));
                 }
             }
             await InvokeAsync(StateHasChanged);
@@ -599,5 +603,6 @@
     record ConvSummary(Guid Id, string Title, DateTime UpdatedAt, int MessageCount);
     record HistoryMessage(string Role, string Content);
 }
+
 
 
