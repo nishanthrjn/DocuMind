@@ -8,8 +8,9 @@ public class DocumentChunk
     public string   Content     { get; set; } = string.Empty;
     public int      TokenCount  { get; set; }
     public int?     PageNumber  { get; set; }
-    public Pgvector.Vector? Embedding { get; set; }
+    public float[]? Embedding { get; set; }
     public DateTime CreatedAt   { get; set; } = DateTime.UtcNow;
     public Document Document    { get; set; } = null!;
 }
+
 

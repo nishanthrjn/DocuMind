@@ -42,7 +42,12 @@ public class DocuMindDbContext : DbContext
             b.Property(x => x.ChunkIndex).HasColumnName("chunk_index");
             b.Property(x => x.CreatedAt).HasColumnName("created_at");
             b.Property(x => x.TokenCount).HasColumnName("token_count");
-            b.Property(x => x.Embedding).HasColumnName("embedding");
+            b.Property(x => x.Embedding)
+             .HasColumnName("embedding")
+             .HasConversion(
+                 v => v == null ? null : new Pgvector.Vector(v),
+                 v => v == null ? null : v.ToArray())
+             .HasColumnType("vector(768)");
         });
 
         modelBuilder.Entity<QueryRecord>(b =>
@@ -71,4 +76,5 @@ public class DocuMindDbContext : DbContext
         base.OnModelCreating(modelBuilder);
     }
 }
+
 
