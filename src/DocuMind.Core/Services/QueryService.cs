@@ -69,8 +69,11 @@ public class QueryService : IQueryService
             - Use **bold** for key terms and concepts
             - Use bullet points for lists of findings
             - Keep answers concise and well-structured
-            - IMPORTANT: Cite sources inline using [1], [2], [3] etc. matching the source numbers below.
-            - Example: "The Transformer uses attention mechanisms [1] which allow parallel processing [2]."
+            - IMPORTANT: You MUST cite sources using ONLY the numbered format [1], [2], [3] matching the source numbers below.
+            - CORRECT: "Mamba achieves 4-5x higher throughput than Transformers [1]."
+            - WRONG: "Mamba achieves 4-5x higher throughput (Source: 2312.00752v2.pdf)"
+            - WRONG: "...as cited in the author list"
+            - NEVER write [Source: filename] or (Source: filename) — ONLY use [1], [2], [3] numbers.
             - If the answer is not in the documents, say so clearly
 
             Document context:
@@ -93,7 +96,12 @@ public class QueryService : IQueryService
 
         sw.Stop();
 
-        var answer = CleanLatex(response.Content ?? "");
+        var raw    = response.Content ?? "";
+        // Strip [Source: filename] patterns — we show citations via numbered pills
+        raw = System.Text.RegularExpressions.Regex.Replace(raw, @"\[Source:[^\]]+\]", "");
+        raw = System.Text.RegularExpressions.Regex.Replace(raw, @"\(Source:[^\)]+\)", "");
+        raw = System.Text.RegularExpressions.Regex.Replace(raw, @"Sources\s*\n[\s\S]*?(?=\n#|\z)", "");
+        var answer = CleanLatex(raw.Trim());
 
         // Build citations from chunks
         var citations = chunkDocs.Select((cd, i) => new Citation(
@@ -137,4 +145,6 @@ public class QueryService : IQueryService
         return text.Trim();
     }
 }
+
+
 
