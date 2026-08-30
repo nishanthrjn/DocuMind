@@ -6,6 +6,9 @@
 [![AI](https://img.shields.io/badge/AI-Semantic%20Kernel-teal.svg)](https://github.com/microsoft/semantic-kernel)
 
 > A NotebookLM-inspired RAG platform built with C#/.NET 10. Upload research papers or documents, chat with them using AI, and get answers with inline citations showing exactly where each fact comes from.
+
+![DocuMind](docs/screenshots/04-answer.png)
+
 ---
 
 ## Features
@@ -22,6 +25,21 @@
 
 ---
 
+## Screenshots
+
+| Empty State | Upload Documents |
+|-------------|-----------------|
+| ![Empty](docs/screenshots/01-empty-state.png) | ![Upload](docs/screenshots/02-upload.png) |
+
+| Sources Loaded | AI Answer with Citations |
+|----------------|--------------------------|
+| ![Sources](docs/screenshots/03-sources-loaded.png) | ![Answer](docs/screenshots/04-answer.png) |
+
+| Citation Popup | Saved Chats |
+|----------------|-------------|
+| ![Citations](docs/screenshots/08-citations-popup.png) | ![Chats](docs/screenshots/07-saved-chats.png) |
+
+---
 
 ## Architecture
 
