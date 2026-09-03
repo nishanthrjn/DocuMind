@@ -36,7 +36,7 @@ public class QueryService : IQueryService
         var sw = Stopwatch.StartNew();
 
         var questionEmbedding = await _embedder.EmbedAsync(question, ct);
-        var relevantChunks    = await _chunkRepo.SearchSimilarAsync(questionEmbedding, topK, ct);
+        var relevantChunks    = await _chunkRepo.HybridSearchAsync(questionEmbedding, question, topK, ct);
 
         if (relevantChunks.Count == 0)
         {
@@ -56,7 +56,7 @@ public class QueryService : IQueryService
             var doc   = await _documentRepo.GetByIdAsync(chunk.DocumentId, ct);
             chunkDocs.Add((chunk, doc));
             contextBuilder.AppendLine($"[{i + 1}] Source: {doc?.FileName ?? "Unknown"}");
-            contextBuilder.AppendLine(chunk.Content[..Math.Min(800, chunk.Content.Length)]);
+            contextBuilder.AppendLine(chunk.Content[..Math.Min(800,chunk.Content.Length)]);
             contextBuilder.AppendLine();
         }
 
@@ -145,6 +145,3 @@ public class QueryService : IQueryService
         return text.Trim();
     }
 }
-
-
-
