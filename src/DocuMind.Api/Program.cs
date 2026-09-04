@@ -9,6 +9,7 @@ using Pgvector.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Npgsql;
 using Pgvector.Npgsql;
+using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,8 @@ builder.Services.ConfigureHttpClientDefaults(b =>
 var ollamaChatModel   = builder.Configuration["Ollama:ChatModel"]      ?? "llama3.2";
 var groqApiKey        = builder.Configuration["Groq:ApiKey"]             ?? "";
 var groqChatModel     = builder.Configuration["Groq:ChatModel"]          ?? "llama-3.3-70b-versatile";
+var cohereApiKey      = builder.Configuration["Cohere:ApiKey"]           ?? "";
+var cohereModel       = builder.Configuration["Cohere:Model"]            ?? "rerank-v3.5";
 
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 dataSourceBuilder.UseVector();
@@ -68,6 +71,29 @@ builder.Services.AddScoped<IngestionService>();
 builder.Services.AddSingleton<IDocumentParser, DocuMind.Core.Parsers.PdfDocumentParser>();
 builder.Services.AddSingleton<IDocumentParser, DocuMind.Core.Parsers.PlainTextParser>();
 builder.Services.AddSingleton<DocumentParserDispatcher>();
+
+// Reranking — Cohere if configured, otherwise a no-op that just truncates to topN
+// (same graceful-degradation pattern as the Groq -> Ollama chat fallback above).
+builder.Services.AddHttpClient("Cohere", client =>
+{
+    client.BaseAddress = new Uri("https://api.cohere.com/");
+    if (!string.IsNullOrEmpty(cohereApiKey))
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", cohereApiKey);
+});
+
+if (!string.IsNullOrEmpty(cohereApiKey))
+{
+    builder.Services.AddScoped<IReranker>(sp =>
+    {
+        var factory = sp.GetRequiredService<IHttpClientFactory>();
+        var client  = factory.CreateClient("Cohere");
+        return new CohereReranker(client, cohereModel);
+    });
+}
+else
+{
+    builder.Services.AddScoped<IReranker, NoOpReranker>();
+}
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
@@ -275,15 +301,3 @@ public record SaveConversationRequest(
     List<SaveMessageRequest> Messages);
 
 public record SaveMessageRequest(string Role, string Content, string Citations);
-
-
-
-
-
-
-
-
-
-
-
-
