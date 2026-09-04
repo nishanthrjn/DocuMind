@@ -27,7 +27,6 @@ public class ChunkRepository : IChunkRepository
     {
         await using var db = await _contextFactory.CreateDbContextAsync(ct);
         var vector = new Vector(queryEmbedding);
-
         return await db.DocumentChunks
             .FromSql($"""
                 SELECT * FROM document_chunks
@@ -36,5 +35,40 @@ public class ChunkRepository : IChunkRepository
                 """)
             .ToListAsync(ct);
     }
-}
 
+    public async Task<List<DocumentChunk>> HybridSearchAsync(
+        float[] queryEmbedding, string queryText, int topK, CancellationToken ct)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(ct);
+        var vector = new Vector(queryEmbedding);
+
+        return await db.DocumentChunks
+            .FromSql($"""
+                WITH vector_search AS (
+                    SELECT id, RANK() OVER (ORDER BY embedding <=> {vector}::vector) AS rank
+                    FROM document_chunks
+                    ORDER BY embedding <=> {vector}::vector
+                    LIMIT 30
+                ),
+                text_search AS (
+                    SELECT id, RANK() OVER (
+                        ORDER BY ts_rank_cd(content_tsv, websearch_to_tsquery('english', {queryText})) DESC
+                    ) AS rank
+                    FROM document_chunks
+                    WHERE content_tsv @@ websearch_to_tsquery('english', {queryText})
+                    LIMIT 30
+                )
+                SELECT dc.* FROM document_chunks dc
+                JOIN (
+                    SELECT COALESCE(v.id, t.id) AS id,
+                           COALESCE(1.0/(60+v.rank), 0) + COALESCE(1.0/(60+t.rank), 0) AS rrf_score
+                    FROM vector_search v
+                    FULL OUTER JOIN text_search t ON v.id = t.id
+                    ORDER BY rrf_score DESC
+                    LIMIT {topK}
+                ) ranked ON dc.id = ranked.id
+                ORDER BY ranked.rrf_score DESC
+                """)
+            .ToListAsync(ct);
+    }
+}
