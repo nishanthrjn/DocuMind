@@ -13,17 +13,20 @@ public class QueryService : IQueryService
     private readonly IEmbeddingService   _embedder;
     private readonly IChunkRepository    _chunkRepo;
     private readonly IDocumentRepository _documentRepo;
+    private readonly IReranker           _reranker;
     private readonly Kernel              _kernel;
 
     public QueryService(
         IEmbeddingService    embedder,
         IChunkRepository     chunkRepo,
         IDocumentRepository  documentRepo,
+        IReranker             reranker,
         Kernel               kernel)
     {
         _embedder     = embedder;
         _chunkRepo    = chunkRepo;
         _documentRepo = documentRepo;
+        _reranker     = reranker;
         _kernel       = kernel;
     }
 
@@ -36,7 +39,11 @@ public class QueryService : IQueryService
         var sw = Stopwatch.StartNew();
 
         var questionEmbedding = await _embedder.EmbedAsync(question, ct);
-        var relevantChunks    = await _chunkRepo.HybridSearchAsync(questionEmbedding, question, topK, ct);
+
+        // Retrieve broadly via hybrid search (vector + full-text, RRF-merged),
+        // then rerank down to the final topK with a cross-encoder for precision.
+        var candidates      = await _chunkRepo.HybridSearchAsync(questionEmbedding, question, 25, ct);
+        var relevantChunks  = await _reranker.RerankAsync(question, candidates, topK, ct);
 
         if (relevantChunks.Count == 0)
         {
