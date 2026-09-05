@@ -119,7 +119,7 @@ cd DocuMind_UI
 ### 2. Start PostgreSQL with pgvector
 
 ```bash
-docker-compose -f infra/docker-compose.yml up -d
+docker-compose -f infra/compose.yml up -d
 ```
 
 ---

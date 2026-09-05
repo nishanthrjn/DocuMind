@@ -1,5 +1,6 @@
 using DocuMind.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace DocuMind.Infrastructure.Persistence;
 
@@ -46,7 +47,11 @@ public class DocuMindDbContext : DbContext
              .HasColumnName("embedding")
              .HasConversion(
                  v => v == null ? null : new Pgvector.Vector(v),
-                 v => v == null ? null : v.ToArray())
+                 v => v == null ? null : v.ToArray(),
+                 new ValueComparer<float[]?>(
+                     (a, b) => a == null ? b == null : b != null && a.SequenceEqual(b),
+                     v => v == null ? 0 : v.Aggregate(0, (h, x) => HashCode.Combine(h, x)),
+                     v => v == null ? null : v.ToArray()))
              .HasColumnType("vector(768)");
         });
 
