@@ -1,10 +1,5 @@
 # DocuMind — AI Document Intelligence Platform
 
-[![Build](https://img.shields.io/github/actions/workflow/status/nishanthrjn/DocuMind/ci.yml?branch=main&label=build)](https://github.com/nishanthrjn/DocuMind/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com)
-[![AI](https://img.shields.io/badge/AI-Semantic%20Kernel-teal.svg)](https://github.com/microsoft/semantic-kernel)
-
 > A NotebookLM-inspired RAG platform built with C#/.NET 10. Upload research papers or documents, chat with them using AI, and get answers with inline citations showing exactly where each fact comes from.
 
 ![DocuMind](docs/screenshots/04-answer.png)
@@ -15,6 +10,8 @@
 
 - **NotebookLM-style two-panel layout** — sources on the left, chat on the right
 - **Multi-document upload** — upload multiple PDFs or TXT files simultaneously
+- **Hybrid search retrieval** — vector similarity (pgvector) and PostgreSQL full-text search merged via Reciprocal Rank Fusion
+- **Cross-encoder reranking** — top 25 hybrid candidates reranked by Cohere `rerank-v3.5` down to the most relevant 5
 - **AI chat with citations** — answers include inline `[1]` `[2]` numbers linked to source chunks
 - **Citation popup** — click any `[1]` citation to see the exact text from the source document
 - **Conversation history** — save, load and continue past chats
@@ -22,6 +19,7 @@
 - **Export to markdown** — download any conversation as a `.md` file
 - **Time-based themes** — UI automatically adapts to morning / afternoon / evening / night
 - **Fast inference** — Groq API for sub-5-second responses
+- **Graceful degradation** — runs without a Cohere key (skips reranking) or without a Groq key (falls back to local Ollama chat)
 
 ---
 
@@ -34,6 +32,10 @@
 | Sources Loaded | AI Answer with Citations |
 |----------------|--------------------------|
 | ![Sources](docs/screenshots/03-sources-loaded.png) | ![Answer](docs/screenshots/04-answer.png) |
+
+| Multi-document Answer | Code Answer |
+|----------------------|-------------|
+| ![Multi](docs/screenshots/05-multi-answer.png) | ![Code](docs/screenshots/06-code-answer.png) |
 
 | Citation Popup | Saved Chats |
 |----------------|-------------|
@@ -48,10 +50,11 @@ PDF Upload
   └── PdfPig parser
         └── Sliding-window chunker
               └── nomic-embed-text (Ollama, local)
-                    └── pgvector (PostgreSQL)
-                          └── Cosine similarity search
-                                └── Groq LLM (openai/gpt-oss-120b)
-                                      └── Blazor Server UI
+                    └── pgvector + PostgreSQL full-text (PostgreSQL)
+                          └── Hybrid search (RRF of vector + text, top 25)
+                                └── Cohere rerank-v3.5 (top 25 → top 5)
+                                      └── Groq LLM (openai/gpt-oss-120b)
+                                            └── Blazor Server UI
 ```
 
 ---
@@ -62,8 +65,10 @@ PDF Upload
 |-------|-----------|
 | Frontend | Blazor Server (.NET 10) |
 | Backend | ASP.NET Core Minimal API (.NET 10) |
-| AI / LLM | Groq API (`openai/gpt-oss-120b`) |
+| AI / LLM | Groq API (`openai/gpt-oss-120b`), via Microsoft Semantic Kernel |
 | Embeddings | Ollama (`nomic-embed-text`, runs locally) |
+| Retrieval | Hybrid search — pgvector cosine similarity + PostgreSQL full-text, merged with Reciprocal Rank Fusion |
+| Reranking | Cohere `rerank-v3.5` (optional — falls back to a no-op reranker if no API key is set) |
 | Vector Store | PostgreSQL + pgvector |
 | PDF Parsing | PdfPig |
 | ORM | Entity Framework Core 9 |
@@ -105,8 +110,8 @@ DocuMind/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/nishanthrjn/DocuMind.git
-cd DocuMind
+git clone https://github.com/nishanthrjn/DocuMind_UI.git
+cd DocuMind_UI
 ```
 
 ---
@@ -144,6 +149,10 @@ Create `src/DocuMind.Api/appsettings.json` (this file is git-ignored):
     "ApiKey": "your-groq-api-key-here",
     "ChatModel": "openai/gpt-oss-120b"
   },
+  "Cohere": {
+    "ApiKey": "your-cohere-api-key-here",
+    "Model": "rerank-v3.5"
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Information",
@@ -155,7 +164,7 @@ Create `src/DocuMind.Api/appsettings.json` (this file is git-ignored):
 }
 ```
 
-Get your free Groq API key at [console.groq.com](https://console.groq.com).
+Get your free Groq API key at [console.groq.com](https://console.groq.com). `Cohere:ApiKey` is optional — get one at [dashboard.cohere.com](https://dashboard.cohere.com); if omitted, reranking is skipped and the top hybrid-search results are used as-is.
 
 ---
 
@@ -186,10 +195,11 @@ Open [http://localhost:5262](http://localhost:5262) in your browser.
 
 ### Query pipeline
 1. Your question is embedded using the same model
-2. **Cosine similarity search** finds the top 5 most relevant chunks
-3. Chunks are sent to **Groq** as numbered context `[1]`, `[2]`, etc.
-4. Groq generates a cited answer referencing the source numbers
-5. Click any `[1]` citation to see the exact source text
+2. **Hybrid search** retrieves the top 25 candidates by merging pgvector cosine similarity and PostgreSQL full-text search (`websearch_to_tsquery`) with Reciprocal Rank Fusion
+3. **Cohere rerank-v3.5** reranks those 25 candidates down to the top 5 most relevant chunks (skipped if no Cohere key is configured)
+4. Chunks are sent to **Groq** as numbered context `[1]`, `[2]`, etc.
+5. Groq generates a cited answer referencing the source numbers
+6. Click any `[1]` citation to see the exact source text
 
 ---
 
@@ -225,8 +235,10 @@ dotnet test
 
 | Setting | Description | Default |
 |---------|-------------|---------|
-| `Groq:ApiKey` | Groq API key | Required |
+| `Groq:ApiKey` | Groq API key | Falls back to local Ollama chat (`llama3.2`) if unset |
 | `Groq:ChatModel` | Groq model ID | `openai/gpt-oss-120b` |
+| `Cohere:ApiKey` | Cohere API key, used for reranking | Optional — reranking is skipped if unset |
+| `Cohere:Model` | Cohere rerank model ID | `rerank-v3.5` |
 | `Ollama:Endpoint` | Ollama server URL | `http://localhost:11434` |
 | `Ollama:EmbeddingModel` | Embedding model | `nomic-embed-text` |
 | `ConnectionStrings:DefaultConnection` | PostgreSQL connection string | Required |
@@ -241,5 +253,5 @@ MIT — feel free to use this as a starting point for your own RAG applications.
 
 ## Author
 
-**Nishanth Rajan** — Software Engineer | https://linkedin.com/in/nishanthrajan | https://github.com/nishanthrjn/DocuMind
+**Nishanth Rajan** — Software Engineer, Hannover Germany (EU Blue Card holder) — [LinkedIn](https://linkedin.com/in/nishanthrajan) · [GitHub](https://github.com/nishanthrjn/DocuMind_UI)
 
