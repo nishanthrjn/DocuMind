@@ -29,7 +29,7 @@ public class DocuMindDbContext : DbContext
             b.Property(x => x.ProcessedAt).HasColumnName("processed_at");
             b.Property(x => x.Status).HasColumnName("status");
             b.Property(x => x.ChunkCount).HasColumnName("chunk_count");
-            b.Property(x => x.Metadata).HasColumnName("metadata").HasColumnType("text");
+            b.Property(x => x.Metadata).HasColumnName("metadata").HasColumnType("jsonb");
         });
 
         modelBuilder.Entity<DocumentChunk>(b =>

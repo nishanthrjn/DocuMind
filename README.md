@@ -84,7 +84,7 @@ DocuMind/
 ├── tests/
 │   └── DocuMind.Tests/           # Unit tests
 ├── infra/
-│   └── docker-compose.yml        # PostgreSQL + pgvector
+│   └── compose.yml        # PostgreSQL + pgvector
 └── docs/
     └── screenshots/
 ```
@@ -114,7 +114,7 @@ cd DocuMind
 ### 2. Start PostgreSQL with pgvector
 
 ```bash
-docker-compose -f infra/docker-compose.yml up -d
+docker-compose -f infra/compose.yml up -d
 ```
 
 ---
