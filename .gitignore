@@ -19,3 +19,4 @@ appsettings.Development.json
 Thumbs.db
 
 src/DocuMind.Api/appsettings.json
+src/DocuMind.Api/appsettings.Development.json
